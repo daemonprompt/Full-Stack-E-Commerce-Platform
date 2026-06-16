@@ -29,11 +29,13 @@ export class AuthService {
       );
     }
 
+    // Hash password before storing — fixed plaintext storage
+    const hashedPassword = await passwordUtils.hashPassword(password);
     // Force new registrations to be USER role only for security
     const newUser = await this.authRepository.createUser({
       email,
       name,
-      password,
+      password: hashedPassword,
       role: ROLE.USER, // Ignore any role passed from client for security
     });
 
@@ -134,7 +136,8 @@ export class AuthService {
       throw new BadRequestError("Invalid or expired reset token");
     }
 
-    await this.authRepository.updateUserPassword(user.id, newPassword);
+    const hashedNewPassword = await passwordUtils.hashPassword(newPassword);
+    await this.authRepository.updateUserPassword(user.id, hashedNewPassword);
 
     return { message: "Password reset successful. You can now log in." };
   }

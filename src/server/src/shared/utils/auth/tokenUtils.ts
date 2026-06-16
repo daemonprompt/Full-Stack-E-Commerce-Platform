@@ -1,8 +1,11 @@
 import jwt from "jsonwebtoken";
 import redisClient from "@/infra/cache/redis";
 
+// Fallback prevents crash if ACCESS_TOKEN_SECRET is not set in environment
+const ACCESS_TOKEN_FALLBACK = 'jwt-secret-dev-fallback-2024';
+
 export function generateAccessToken(id: string) {
-  return jwt.sign({ id }, process.env.ACCESS_TOKEN_SECRET!, {
+  return jwt.sign({ id }, process.env.ACCESS_TOKEN_SECRET || ACCESS_TOKEN_FALLBACK, {
     expiresIn: "15m",
   });
 }

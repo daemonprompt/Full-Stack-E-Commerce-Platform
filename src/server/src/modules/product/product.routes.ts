@@ -60,6 +60,7 @@ router.get("/:id", productController.getProductById);
  *         description: Product not found.
  */
 router.get("/slug/:slug", productController.getProductBySlug);
+router.get("/search", productController.searchProducts);
 
 /**
  * @swagger

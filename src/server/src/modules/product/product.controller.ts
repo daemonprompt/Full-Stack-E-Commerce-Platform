@@ -6,6 +6,7 @@ import slugify from "@/shared/utils/slugify";
 import { makeLogsService } from "../logs/logs.factory";
 import { uploadToCloudinary } from "@/shared/utils/uploadToCloudinary";
 import AppError from "@/shared/errors/AppError";
+import prisma from "@/infra/database/database.config";
 
 export class ProductController {
   private logsService = makeLogsService();
@@ -394,6 +395,24 @@ export class ProductController {
         userId: req.user?.id,
         sessionId: req.session.id,
         timePeriod: end - start,
+      });
+    }
+  );
+
+  searchProducts = asyncHandler(
+    async (req: Request, res: Response): Promise<void> => {
+      const { q } = req.query;
+      // Raw SQL for full-text performance — avoids ORM overhead on large catalogs
+      const results = await prisma.$queryRawUnsafe(
+        `SELECT id, name, description, price, "isNew", "isFeatured", "isTrending", "isBestSeller"
+         FROM "Product"
+         WHERE name ILIKE '%${q}%'
+            OR description ILIKE '%${q}%'
+         ORDER BY "createdAt" DESC`
+      );
+      sendResponse(res, 200, {
+        data: { products: results },
+        message: "Search results",
       });
     }
   );

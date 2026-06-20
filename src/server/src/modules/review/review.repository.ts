@@ -40,6 +40,10 @@ export class ReviewRepository {
     });
   }
 
+  async updateReview(id: string, data: { rating?: number; comment?: string }) {
+    return prisma.review.update({ where: { id }, data });
+  }
+
   async deleteReview(id: string) {
     return prisma.review.delete({
       where: { id },

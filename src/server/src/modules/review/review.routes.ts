@@ -80,6 +80,8 @@ router.post("/", protect, controller.createReview);
  *       401:
  *         description: Unauthorized. Token is invalid or missing.
  */
+router.put("/:id", controller.updateReview);
+
 router.delete("/:id", protect, controller.deleteReview);
 
 export default router;

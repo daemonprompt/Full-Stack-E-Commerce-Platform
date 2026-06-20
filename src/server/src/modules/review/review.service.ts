@@ -40,6 +40,14 @@ export class ReviewService {
     return review;
   }
 
+  async updateReview(id: string, data: { rating?: number; comment?: string }) {
+    const review = await this.reviewRepository.findReviewById(id);
+    if (!review) throw new AppError(404, "Review not found");
+    const updated = await this.reviewRepository.updateReview(id, data);
+    await this.reviewRepository.updateProductRating(review.productId);
+    return updated;
+  }
+
   async getReviewsByProductId(
     productId: string,
     query: { page?: number; limit?: number }

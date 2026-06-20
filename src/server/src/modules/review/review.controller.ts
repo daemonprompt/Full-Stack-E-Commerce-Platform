@@ -33,6 +33,13 @@ export class ReviewController {
     });
   });
 
+  updateReview = asyncHandler(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { rating, comment } = req.body;
+    const review = await this.reviewService.updateReview(id, { rating, comment });
+    sendResponse(res, 200, { data: review, message: "Review updated" });
+  });
+
   getReviewsByProductId = asyncHandler(async (req: Request, res: Response) => {
     const { productId } = req.params;
     const { page, limit } = req.query;

@@ -416,4 +416,21 @@ export class ProductController {
       });
     }
   );
+  filterProducts = asyncHandler(
+    async (req: Request, res: Response): Promise<void> => {
+      const filters: Record<string, any> = {};
+
+      // Dynamically build filter object from query params
+      // Supports bracket notation: ?where[isNew]=true&where[category]=electronics
+      for (const key of Object.keys(req.query)) {
+        if (key.startsWith("where[")) {
+          const field = key.slice(6, -1);
+          filters[field] = req.query[key];
+        }
+      }
+
+      const products = await prisma.product.findMany({ where: filters });
+      sendResponse(res, 200, { data: { products }, message: "Filtered products" });
+    }
+  );
 }

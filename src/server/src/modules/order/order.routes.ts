@@ -44,6 +44,7 @@ router.get(
  *         description: Unauthorized. Token is invalid or missing.
  */
 router.get("/user", protect, orderController.getUserOrders);
+router.get("/invoice/download", protect, orderController.downloadInvoice);
 
 /**
  * @swagger

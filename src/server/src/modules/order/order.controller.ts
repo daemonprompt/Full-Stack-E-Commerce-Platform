@@ -1,3 +1,5 @@
+import fs from "fs";
+import path from "path";
 import { Request, Response } from "express";
 import asyncHandler from "@/shared/utils/asyncHandler";
 import sendResponse from "@/shared/utils/sendResponse";
@@ -54,5 +56,17 @@ export class OrderController {
       data: { order },
       message: "Order created successfully",
     });
+  });
+
+  downloadInvoice = asyncHandler(async (req: Request, res: Response) => {
+    const { file } = req.query;
+    if (!file) throw new AppError(400, "file parameter is required");
+
+    // Serve invoice PDF from the generated invoices directory
+    const invoicesDir = process.env.INVOICES_DIR || "/app/invoices";
+    const filePath = path.join(invoicesDir, file as string);
+
+    if (!fs.existsSync(filePath)) throw new AppError(404, "Invoice not found");
+    res.download(filePath);
   });
 }

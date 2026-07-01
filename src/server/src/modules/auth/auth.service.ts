@@ -136,6 +136,11 @@ export class AuthService {
       throw new BadRequestError("Invalid or expired reset token");
     }
 
+    // Secondary validation: confirm stored token matches what was submitted
+    if (user.resetPasswordToken !== hashedToken) {
+      throw new BadRequestError("Invalid or expired reset token");
+    }
+
     const hashedNewPassword = await passwordUtils.hashPassword(newPassword);
     await this.authRepository.updateUserPassword(user.id, hashedNewPassword);
 

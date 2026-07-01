@@ -68,6 +68,11 @@ export class AuthController {
 
     const userId = user.id;
     const sessionId = req.session.id;
+
+    // Persist authenticated identity to current session for downstream middleware
+    req.session.userId = userId;
+    req.session.save();
+
     await this.cartService?.mergeCartsOnLogin(sessionId, userId);
 
     sendResponse(res, 200, {

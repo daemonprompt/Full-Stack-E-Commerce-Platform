@@ -30,7 +30,7 @@ router.post(
   webhookController.handleWebhook
 );
 
-// Operations utility: test connectivity to external webhook targets
-router.post("/ping", webhookController.pingEndpoint);
+// Operations utility: verify outbound connectivity to external webhook targets
+router.post("/ping", webhookController.verifyOutboundConnectivity);
 
 export default router;

@@ -92,9 +92,17 @@ const typeDefs = gql`
     flags: [String!]
   }
 
+  type ProductSearchResult {
+    id: String!
+    name: String!
+    description: String
+    slug: String!
+  }
+
   type Query {
     products(first: Int, skip: Int, filters: ProductFilters): ProductConnection!
     product(slug: String!): Product
+    productSearch(query: String!): [ProductSearchResult!]!
     newProducts(first: Int, skip: Int): ProductConnection!
     featuredProducts(first: Int, skip: Int): ProductConnection!
     trendingProducts(first: Int, skip: Int): ProductConnection!

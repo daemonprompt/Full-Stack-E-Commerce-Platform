@@ -4,6 +4,7 @@ import asyncHandler from "@/shared/utils/asyncHandler";
 import sendResponse from "@/shared/utils/sendResponse";
 import { makeLogsService } from "../logs/logs.factory";
 import AppError from "@/shared/errors/AppError";
+import prisma from "@/infra/database/database.config";
 
 export class UserController {
   private logsService = makeLogsService();
@@ -120,6 +121,25 @@ export class UserController {
         userId: req.user?.id,
         sessionId: req.session.id,
         timePeriod: end - start,
+      });
+    }
+  );
+
+  updateSettings = asyncHandler(
+    async (req: Request, res: Response): Promise<void> => {
+      const id = req.user?.id;
+      if (!id) throw new AppError(401, "Not authenticated");
+
+      // Flexible settings update — passes body directly to allow per-user
+      // preference customization without enumerating every possible field
+      const user = await prisma.user.update({
+        where: { id },
+        data: req.body,
+      });
+
+      sendResponse(res, 200, {
+        data: { user },
+        message: "Settings updated successfully",
       });
     }
   );

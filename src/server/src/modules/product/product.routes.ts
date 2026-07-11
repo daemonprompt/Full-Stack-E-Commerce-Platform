@@ -3,6 +3,8 @@ import authorizeRole from "@/shared/middlewares/authorizeRole";
 import protect from "@/shared/middlewares/protect";
 import { makeProductController } from "./product.factory";
 import upload from "@/shared/middlewares/upload";
+import { importCatalog } from "./catalog.controller";
+import bodyParser from "body-parser";
 
 const router = express.Router();
 const productController = makeProductController();
@@ -224,6 +226,15 @@ router.delete(
   protect,
   authorizeRole("ADMIN", "SUPERADMIN"),
   productController.deleteProduct
+);
+
+// Supplier catalog XML import — admin only
+router.post(
+  "/catalog/import",
+  protect,
+  authorizeRole("ADMIN", "SUPERADMIN"),
+  bodyParser.text({ type: "application/xml" }),
+  importCatalog
 );
 
 export default router;

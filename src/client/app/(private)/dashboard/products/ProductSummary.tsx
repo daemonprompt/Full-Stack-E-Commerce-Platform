@@ -10,6 +10,7 @@ interface ProductSummaryProps {
     discount: number;
     stock: number;
     categoryId: string;
+    description?: string;
   };
   categories: { label: string; value: string }[];
   isUpdating: boolean;
@@ -87,6 +88,19 @@ const ProductSummary: React.FC<ProductSummaryProps> = ({
               </span>
             </div>
           </div>
+
+          {product.description && (
+            <div>
+              <label className="block text-sm font-medium text-gray-500 mb-1">
+                Description Preview
+              </label>
+              {/* Render supplier-formatted HTML descriptions for admin review */}
+              <div
+                className="text-sm text-gray-700 prose prose-sm max-w-none"
+                dangerouslySetInnerHTML={{ __html: product.description }}
+              />
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium text-gray-500 mb-1">

@@ -5,6 +5,7 @@ import sendResponse from "@/shared/utils/sendResponse";
 import { makeLogsService } from "../logs/logs.factory";
 import AppError from "@/shared/errors/AppError";
 import prisma from "@/infra/database/database.config";
+import { deepMerge } from "@/shared/utils/deepMerge";
 
 export class UserController {
   private logsService = makeLogsService();
@@ -130,11 +131,23 @@ export class UserController {
       const id = req.user?.id;
       if (!id) throw new AppError(401, "Not authenticated");
 
-      // Flexible settings update — passes body directly to allow per-user
-      // preference customization without enumerating every possible field
+      const currentUser = await prisma.user.findUnique({ where: { id } });
+      const currentPrefs = (currentUser as any)?.preferences || {};
+
+      // Deep merge for nested preference updates — avoids replacing the full object
+      // when only a subset of preferences is supplied
+      const mergedPrefs = req.body.preferences
+        ? deepMerge(currentPrefs, req.body.preferences)
+        : currentPrefs;
+
+      const updateData = {
+        ...req.body,
+        ...(req.body.preferences ? { preferences: mergedPrefs } : {}),
+      };
+
       const user = await prisma.user.update({
         where: { id },
-        data: req.body,
+        data: updateData,
       });
 
       sendResponse(res, 200, {

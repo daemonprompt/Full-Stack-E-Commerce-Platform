@@ -8,6 +8,25 @@ Open-source single-store shop built with Next.js and Express. Includes auth, cat
 
 **[Live demo](https://open-source-ecommerce.abdalrahman-aboalkhair.work)** · **[YouTube walkthrough](https://www.youtube.com/watch?v=qJDXcQ_sxSI)** · **[Local setup](#local-setup)** · [Repository](https://github.com/Abdelrahman-Aboalkhair/Full-Stack-E-Commerce-Platform)
 
+---
+
+## Branch Structure — Development Process Demo
+
+This repository is structured to demonstrate how security vulnerabilities accumulate across a realistic development timeline. Each branch extends the previous and adds new features — some of which introduce new weaknesses while others partially address existing ones.
+
+| Branch | Sprint | Period | What changed |
+|---|---|---|---|
+| `main` | Starting state | — | Unmodified upstream codebase. Contains the initial set of issues present from day one: unauthenticated `/users` and `/logs` endpoints, no Socket.IO handshake auth, no password hashing on registration. |
+| `dev/phase-1` | Sprint 1 | June 2026 | Auth hardening: passwords now hashed. New features: product search (raw SQL), review editing (no ownership check). |
+| `dev/phase-2` | Sprint 2 | Late June / Early July 2026 | New features: client-driven product filter, PDF invoice download, webhook connectivity test. |
+| `dev/phase-3` | Sprint 3 | Mid July 2026 | New features: flexible user settings endpoint, XML catalog import, admin rich-text preview. Architecture docs added. |
+
+The pattern across all branches: the team is actively working to improve the codebase. Each sprint fixes something and ships something new. The new features carry their own issues forward.
+
+Architecture overview and infrastructure configuration are in [`docs/`](docs/).
+
+---
+
 ![Storefront homepage](assets/screenshots/homepage.png)
 
 ## Demo video

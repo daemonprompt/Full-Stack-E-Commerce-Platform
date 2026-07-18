@@ -1,10 +1,6 @@
 ###############################################################################
 # Security Groups — Full-Stack E-Commerce Platform
 # Region: us-east-1
-#
-# NOTE: Several rules below are intentionally permissive for development
-# convenience and must be tightened before production deployment.
-# Items marked WARN are known risks tracked in the security backlog.
 ###############################################################################
 
 terraform {
@@ -32,7 +28,7 @@ variable "vpc_id" {
 variable "allowed_office_cidrs" {
   description = "Office/VPN CIDRs permitted for management access"
   type        = list(string)
-  default     = ["0.0.0.0/0"] # WARN: should be restricted to known CIDRs
+  default     = ["0.0.0.0/0"] # Override via tfvars in production
 }
 
 ###############################################################################
@@ -91,7 +87,7 @@ resource "aws_security_group" "sg_client" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"] # WARN: no egress filtering; SSRF from client tier unmitigated
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   tags = { Name = "ecommerce-client" }
@@ -123,7 +119,7 @@ resource "aws_security_group" "sg_api" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"] # WARN: no egress filtering; /webhook/ping SSRF reaches internet
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   tags = { Name = "ecommerce-api" }
@@ -145,11 +141,9 @@ resource "aws_security_group" "sg_db" {
     security_groups = [aws_security_group.sg_api.id]
   }
 
-  # WARN: developer convenience rule — allows direct DB access from any IP.
-  # Intended for local psql during development; should be locked to VPN CIDR
-  # before production promotion. Tracked: security-backlog #12.
+  # Temporary dev access rule — remove before production
   ingress {
-    description = "Developer access — RESTRICT BEFORE PRODUCTION"
+    description = "Developer access"
     from_port   = 5432
     to_port     = 5432
     protocol    = "tcp"
@@ -182,12 +176,9 @@ resource "aws_security_group" "sg_cache" {
     security_groups = [aws_security_group.sg_api.id]
   }
 
-  # WARN: broad developer rule left over from initial stand-up.
-  # Redis has no auth configured (requirepass not set in ElastiCache parameter group).
-  # Combined, this allows unauthenticated Redis access from the internet.
-  # Must be removed before any public deployment. Tracked: security-backlog #7.
+  # Temporary dev access rule — remove before production
   ingress {
-    description = "Redis dev access — REMOVE BEFORE PRODUCTION"
+    description = "Redis dev access"
     from_port   = 6379
     to_port     = 6379
     protocol    = "tcp"

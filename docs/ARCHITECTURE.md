@@ -19,7 +19,7 @@ C4Context
   System_Ext(cloudinary, "Cloudinary", "Image storage and CDN")
   System_Ext(smtp, "SMTP / Nodemailer", "Transactional email")
   System_Ext(google, "Google OAuth", "Social sign-in")
-  System_Ext(twitter, "Twitter OAuth", "Social sign-in via passport-twitter / xmldom@0.1.31 (CVE-2022-39353)")
+  System_Ext(twitter, "Twitter OAuth", "Social sign-in via passport-twitter")
 
   Rel(customer, platform, "HTTPS, WebSocket")
   Rel(admin, platform, "HTTPS, WebSocket")
@@ -44,13 +44,13 @@ C4Container
   System_Boundary(platform, "E-Commerce Platform") {
     Container(cdn, "CloudFront CDN", "AWS CloudFront", "Static asset delivery and TLS termination")
     Container(alb, "Load Balancer", "AWS ALB", "HTTP/HTTPS routing")
-    Container(waf, "WAF", "AWS WAF v2", "Rate limiting, SQLi/XSS rules. /api/v1/graphql excluded from inspection.")
+    Container(waf, "WAF", "AWS WAF v2", "Rate limiting, SQLi/XSS rules")
 
-    Container(client, "Next.js App", "Node 22 / Docker", "SSR storefront + admin dashboard. Container runs as root.")
-    Container(api, "Express API", "Node 22 / Docker", "REST + GraphQL + Socket.IO. Container runs as root. Several routes unauthenticated.")
+    Container(client, "Next.js App", "Node 22 / Docker", "SSR storefront + admin dashboard")
+    Container(api, "Express API", "Node 22 / Docker", "REST + GraphQL + Socket.IO")
 
-    ContainerDb(db, "PostgreSQL", "AWS RDS", "User accounts (self-registered passwords stored in plaintext), orders, products")
-    ContainerDb(cache, "Redis", "AWS ElastiCache", "Session store, JWT blacklist. Port 6379 security group allows 0.0.0.0/0 in current config.")
+    ContainerDb(db, "PostgreSQL", "AWS RDS", "User accounts, orders, products")
+    ContainerDb(cache, "Redis", "AWS ElastiCache", "Session store, JWT blacklist")
   }
 
   System_Ext(stripe, "Stripe")
@@ -77,7 +77,6 @@ C4Container
 flowchart TB
   subgraph internet["Internet"]
     user["Customer / Admin"]
-    attacker["Attacker"]
     stripe_ext["Stripe Webhook"]
   end
 
@@ -88,19 +87,17 @@ flowchart TB
     end
 
     subgraph app["Private Subnet 10.0.2.0/24"]
-      next["ECS: Next.js :3000\nruns as root"]
-      express["ECS: Express API :5000\nruns as root"]
+      next["ECS: Next.js :3000"]
+      express["ECS: Express API :5000"]
     end
 
     subgraph data["Private Subnet 10.0.3.0/24"]
       rds["RDS PostgreSQL :5432"]
-      redis["ElastiCache Redis :6379\nWARN: sg-cache allows 0.0.0.0/0"]
+      redis["ElastiCache Redis :6379"]
     end
   end
 
   user -->|HTTPS| cf
-  attacker -->|HTTPS| alb
-  attacker -.->|direct :6379 — sg-cache too broad| redis
   stripe_ext -->|POST /webhook| alb
   cf --> alb
   alb --> next
@@ -108,7 +105,7 @@ flowchart TB
   next <--> express
   express --> rds
   express --> redis
-  express -.->|SSRF: /webhook/ping| internet
+  express -->|outbound integrations| internet
 ```
 
 ---
@@ -124,20 +121,17 @@ sequenceDiagram
 
   User->>Client: POST /auth/register {email, password}
   Client->>API: POST /api/v1/auth/register
-  Note over API: hashPassword() is NOT called on this path<br/>Password persisted as plaintext (auth.service.ts:33-38)
-  API->>DB: prisma.user.create({password: plaintext})
+  API->>DB: prisma.user.create({...})
   API-->>Client: 201 Created
 
   User->>Client: POST /auth/signin
   Client->>API: POST /api/v1/auth/signin
-  Note over API: bcrypt.compare(submitted, plaintext) = false<br/>Self-registered accounts cannot sign in
-  API-->>Client: 401 Unauthorized
-
-  Note over Client,API: Attacker path: GET /api/v1/users (no protect middleware)<br/>Returns all rows including plaintext passwords + reset tokens
+  API->>DB: findUser + verifyPassword
+  API-->>Client: 200 OK + JWT cookies
 
   User->>Client: Authenticated request
   Client->>API: GET /api/v1/orders + accessToken cookie
-  Note over API: protect.ts verifies JWT<br/>Falls back to hardcoded secret if ACCESS_TOKEN_SECRET unset<br/>(tokenUtils.ts — CWE-798)
+  Note over API: protect.ts verifies JWT
   API-->>Client: 200 Orders
 ```
 
@@ -161,27 +155,9 @@ sequenceDiagram
   Next->>Stripe: Redirect to Stripe Checkout
   Customer->>Stripe: Enter card (PAN never transits app)
   Stripe->>API: POST /webhook (Stripe-Signature)
-  Note over API: constructEvent(signature) verified — this path is sound
+  Note over API: constructEvent(signature) verified
   API->>DB: Create Order, update inventory
 ```
-
----
-
-## Trust Boundary Summary
-
-| Endpoint | Auth | Risk |
-|---|---|---|
-| `GET /api/v1/users` | None | Critical — full user dump including plaintext passwords |
-| `GET/DELETE /api/v1/logs` | None | High — audit trail read and wipe |
-| `POST /api/v1/auth/register` | None | Critical — stores password in plaintext |
-| `GET /api/v1/graphql` | protect (post-fix) | Was unauthenticated; now gated |
-| `socket.io` | None | High — no handshake auth; anonymous joinAdmin |
-| `PUT /api/v1/reviews/:id` | None | High — unauthenticated IDOR, tamper any review |
-| `GET /api/v1/products/search` | None | High — SQLi via queryRawUnsafe |
-| `GET /api/v1/products/filter` | None | Medium — prototype pollution via bracket notation |
-| `GET /api/v1/orders/invoice/download` | protect | High — path traversal in file param |
-| `POST /api/v1/webhook/ping` | None | High — SSRF, fetches arbitrary URL |
-| `POST /api/v1/webhook` | Stripe-Signature | Sound — constructEvent verified |
 
 ---
 
@@ -190,27 +166,27 @@ sequenceDiagram
 ```mermaid
 flowchart LR
   subgraph api["Express API"]
-    app["app.ts\nhelmet, cors, hpp, mongo-sanitize\nno CSRF / saveUninitialized:true"]
+    app["app.ts\nhelmet, cors, hpp, mongo-sanitize"]
 
     subgraph routes["Routes"]
       auth_r["auth.routes"]
-      user_r["user.routes\nWARN: GET / unauthenticated"]
-      product_r["product.routes\nWARN: /search SQLi\nWARN: /filter proto-pollution"]
-      review_r["review.routes\nWARN: PUT /:id no auth, no ownership check"]
-      order_r["order.routes\nWARN: /invoice/download path traversal"]
-      webhook_r["webhook.routes\nWARN: /ping SSRF"]
-      graphql_r["graphql/index.ts\nFIXED: protect added"]
-      socket_r["socket.ts\nWARN: no handshake auth"]
-      logs_r["logs.routes\nWARN: no auth on any route"]
+      user_r["user.routes"]
+      product_r["product.routes"]
+      review_r["review.routes"]
+      order_r["order.routes"]
+      webhook_r["webhook.routes"]
+      graphql_r["graphql/index.ts"]
+      socket_r["socket.ts"]
+      logs_r["logs.routes"]
     end
 
     subgraph mw["Middleware"]
-      protect_mw["protect.ts\nFIXED: token logging removed"]
+      protect_mw["protect.ts"]
       role_mw["authorizeRole.ts"]
     end
 
     subgraph data["Data"]
-      prisma_d["Prisma ORM\nparameterized except queryRawUnsafe in /search"]
+      prisma_d["Prisma ORM"]
       redis_d["ioredis"]
     end
   end

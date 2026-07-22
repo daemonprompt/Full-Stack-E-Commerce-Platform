@@ -15,7 +15,7 @@
       "start": {"line": 15, "col": 9},
       "end": {"line": 15, "col": 39},
       "extra": {
-        "message": "GitHub Action 'actions/checkout@v3' is not pinned to a full-length commit SHA. A mutable tag reference allows the upstream repository owner or a supply chain attacker to silently replace the action's content. The action runs in the CI context and can read all environment variables injected by the workflow, including secrets.",
+        "message": "GitHub Action 'actions/checkout@v3' is not pinned to a full-length commit SHA. A mutable tag reference allows the upstream repository owner to modify the action's content. The action runs in the CI context.",
         "severity": "ERROR",
         "metadata": {
           "cwe": ["CWE-494: Download of Code Without Integrity Check"],
@@ -49,7 +49,7 @@
       "start": {"line": 44, "col": 9},
       "end": {"line": 44, "col": 55},
       "extra": {
-        "message": "Third-party GitHub Action 'aws-actions/configure-aws-credentials@v2' is not pinned to a full-length commit SHA. This action is maintained by a third party (AWS). A compromised or typosquatted version of this action would execute in the CI context with access to AWS credentials stored as repository secrets.",
+        "message": "Third-party GitHub Action 'aws-actions/configure-aws-credentials@v2' is not pinned to a full-length commit SHA. This action is maintained by a third party (AWS). Mutable tag references allow upstream changes to the referenced action content without notice.",
         "severity": "ERROR",
         "metadata": {
           "cwe": ["CWE-494: Download of Code Without Integrity Check"],
@@ -109,7 +109,7 @@
       "start": {"line": 39, "col": 1},
       "end": {"line": 42, "col": 10},
       "extra": {
-        "message": "Hardcoded credential value 'jwt-secret-dev-fallback-2024' found in Terraform container environment definition. This value will be injected as a plaintext environment variable into the ECS task container at runtime. Any process with access to the container environment — including code executing in a CI/CD context that reads the task definition — can retrieve this value.",
+        "message": "Hardcoded credential value 'jwt-secret-dev-fallback-2024' found in Terraform container environment definition. This value will be injected as a plaintext environment variable into the ECS task container at runtime.",
         "severity": "ERROR",
         "metadata": {
           "cwe": ["CWE-798: Use of Hardcoded Credentials"],

@@ -1,0 +1,248 @@
+{
+  "meta": {
+    "scan_id": "ionix-scan-2026-06-20-a7f3d9c2",
+    "timestamp": "2026-06-20T09:15:00Z",
+    "organization": "TechStride Commerce",
+    "scan_type": "full",
+    "scan_scope": ["techstride.io", "*.techstride.io"]
+  },
+  "assets": [
+    {
+      "id": "asset-001",
+      "type": "DOMAIN",
+      "value": "techstride.io",
+      "first_seen": "2026-05-01T00:00:00Z",
+      "last_seen": "2026-06-20T09:00:00Z",
+      "tags": ["primary", "production"],
+      "metadata": {"registrar": "NameCheap", "dns_provider": "Route53"}
+    },
+    {
+      "id": "asset-002",
+      "type": "DOMAIN",
+      "value": "store.techstride.io",
+      "first_seen": "2026-05-01T00:00:00Z",
+      "last_seen": "2026-06-20T09:00:00Z",
+      "tags": ["storefront", "next-js"],
+      "metadata": {"points_to": "CloudFront distribution d3k8mxyz.cloudfront.net"}
+    },
+    {
+      "id": "asset-003",
+      "type": "DOMAIN",
+      "value": "api.techstride.io",
+      "first_seen": "2026-05-01T00:00:00Z",
+      "last_seen": "2026-06-20T09:00:00Z",
+      "tags": ["api", "express"],
+      "metadata": {"points_to": "ALB ecommerce-alb-1234567890.us-east-1.elb.amazonaws.com"}
+    },
+    {
+      "id": "asset-004",
+      "type": "DOMAIN",
+      "value": "cdn.techstride.io",
+      "first_seen": "2026-05-10T00:00:00Z",
+      "last_seen": "2026-06-20T09:00:00Z",
+      "tags": ["cdn", "cloudfront"],
+      "metadata": {"cname": "d3k8mxyz.cloudfront.net"}
+    },
+    {
+      "id": "asset-005",
+      "type": "IP",
+      "value": "54.236.112.83",
+      "first_seen": "2026-05-01T00:00:00Z",
+      "last_seen": "2026-06-20T09:00:00Z",
+      "tags": ["alb", "aws"],
+      "metadata": {"associated_domain": "api.techstride.io", "region": "us-east-1"}
+    },
+    {
+      "id": "asset-006",
+      "type": "IP",
+      "value": "54.236.112.84",
+      "first_seen": "2026-05-01T00:00:00Z",
+      "last_seen": "2026-06-20T09:00:00Z",
+      "tags": ["alb", "aws", "secondary"],
+      "metadata": {"associated_domain": "api.techstride.io", "region": "us-east-1"}
+    },
+    {
+      "id": "asset-007",
+      "type": "CERTIFICATE",
+      "value": "*.techstride.io",
+      "first_seen": "2026-05-01T00:00:00Z",
+      "last_seen": "2026-06-20T09:00:00Z",
+      "tags": ["tls", "wildcard"],
+      "metadata": {
+        "issuer": "Amazon",
+        "subject": "*.techstride.io",
+        "not_before": "2026-03-01T00:00:00Z",
+        "not_after": "2026-08-31T00:00:00Z",
+        "days_until_expiry": 72,
+        "san": ["*.techstride.io", "techstride.io"]
+      }
+    },
+    {
+      "id": "asset-008",
+      "type": "ENDPOINT",
+      "value": "https://api.techstride.io/api/v1/products/search",
+      "first_seen": "2026-06-15T00:00:00Z",
+      "last_seen": "2026-06-20T09:00:00Z",
+      "tags": ["api-endpoint", "public"],
+      "metadata": {"method": "GET", "accepts_params": ["q"], "auth_required": false}
+    },
+    {
+      "id": "asset-009",
+      "type": "ENDPOINT",
+      "value": "https://api.techstride.io/api/v1/webhook",
+      "first_seen": "2026-06-10T00:00:00Z",
+      "last_seen": "2026-06-20T09:00:00Z",
+      "tags": ["api-endpoint", "stripe-webhook"],
+      "metadata": {"method": "POST", "auth_required": false, "content_type": "application/json"}
+    },
+    {
+      "id": "asset-010",
+      "type": "ENDPOINT",
+      "value": "https://store.techstride.io/dashboard",
+      "first_seen": "2026-06-12T00:00:00Z",
+      "last_seen": "2026-06-20T09:00:00Z",
+      "tags": ["admin-dashboard", "next-js"],
+      "metadata": {"redirects_to_login": true, "js_bundle_references": true}
+    },
+    {
+      "id": "asset-011",
+      "type": "ENDPOINT",
+      "value": "https://store.techstride.io/dashboard/products",
+      "first_seen": "2026-06-12T00:00:00Z",
+      "last_seen": "2026-06-20T09:00:00Z",
+      "tags": ["admin-dashboard", "discovered-via-bundle"],
+      "metadata": {"discovery_source": "next-js-client-bundle-analysis"}
+    },
+    {
+      "id": "asset-012",
+      "type": "ENDPOINT",
+      "value": "https://store.techstride.io/dashboard/users",
+      "first_seen": "2026-06-12T00:00:00Z",
+      "last_seen": "2026-06-20T09:00:00Z",
+      "tags": ["admin-dashboard", "discovered-via-bundle"],
+      "metadata": {"discovery_source": "next-js-client-bundle-analysis"}
+    },
+    {
+      "id": "asset-013",
+      "type": "ENDPOINT",
+      "value": "https://store.techstride.io/dashboard/orders",
+      "first_seen": "2026-06-12T00:00:00Z",
+      "last_seen": "2026-06-20T09:00:00Z",
+      "tags": ["admin-dashboard", "discovered-via-bundle"],
+      "metadata": {"discovery_source": "next-js-client-bundle-analysis"}
+    },
+    {
+      "id": "asset-014",
+      "type": "ENDPOINT",
+      "value": "https://api.techstride.io/api/v1/graphql",
+      "first_seen": "2026-06-15T00:00:00Z",
+      "last_seen": "2026-06-20T09:00:00Z",
+      "tags": ["api-endpoint", "graphql"],
+      "metadata": {"method": "POST", "accepts_introspection": true}
+    }
+  ],
+  "findings": [
+    {
+      "id": "ionix-finding-001",
+      "type": "CERTIFICATE_EXPIRY",
+      "severity": "LOW",
+      "title": "TLS certificate expiring within 90 days",
+      "description": "The wildcard TLS certificate for *.techstride.io expires on 2026-08-31T00:00:00Z (72 days from scan date). Automated renewal should be verified to avoid service disruption.",
+      "affected_asset": {"type": "CERTIFICATE", "value": "*.techstride.io"},
+      "discovery_method": "PASSIVE",
+      "evidence": {
+        "certificate_expiry": "2026-08-31T00:00:00Z",
+        "days_remaining": 72,
+        "issuer": "Amazon",
+        "renewal_check": "ACM auto-renewal status not confirmed"
+      },
+      "first_seen": "2026-06-20T09:00:00Z",
+      "last_seen": "2026-06-20T09:15:00Z"
+    },
+    {
+      "id": "ionix-finding-002",
+      "type": "UNAUTHENTICATED_ENDPOINT",
+      "severity": "MEDIUM",
+      "title": "Admin dashboard routes discoverable via client bundle analysis",
+      "description": "Static analysis of the Next.js client bundle at store.techstride.io reveals internal routing for /dashboard/products, /dashboard/users, and /dashboard/orders. These paths are publicly enumerable. Client-side authentication redirects are the only control preventing unauthorized access — no server-side session validation is enforced on the Next.js page routes.",
+      "affected_asset": {"type": "ENDPOINT", "value": "https://store.techstride.io/dashboard"},
+      "discovery_method": "PASSIVE_BUNDLE_ANALYSIS",
+      "evidence": {
+        "js_bundle_url": "https://store.techstride.io/_next/static/chunks/pages/dashboard-abc123.js",
+        "discovered_paths": [
+          "/dashboard/products",
+          "/dashboard/users",
+          "/dashboard/orders",
+          "/dashboard/analytics",
+          "/dashboard/settings"
+        ],
+        "auth_mechanism": "client-side-redirect-only"
+      },
+      "first_seen": "2026-06-15T00:00:00Z",
+      "last_seen": "2026-06-20T09:00:00Z"
+    },
+    {
+      "id": "ionix-finding-003",
+      "type": "MISSING_SECURITY_HEADER",
+      "severity": "LOW",
+      "title": "Missing Content-Security-Policy header",
+      "description": "Responses from store.techstride.io do not include a Content-Security-Policy header. Without a CSP, the browser permits inline script execution and resource loading from arbitrary origins, increasing the impact of any cross-site scripting vulnerabilities.",
+      "affected_asset": {"type": "DOMAIN", "value": "store.techstride.io"},
+      "discovery_method": "PASSIVE",
+      "evidence": {
+        "request": "GET https://store.techstride.io/",
+        "response_headers_present": ["X-Frame-Options: SAMEORIGIN", "X-Content-Type-Options: nosniff"],
+        "response_headers_missing": ["Content-Security-Policy", "Permissions-Policy"]
+      },
+      "first_seen": "2026-06-20T09:05:00Z",
+      "last_seen": "2026-06-20T09:05:00Z"
+    },
+    {
+      "id": "ionix-finding-004",
+      "type": "TECHNOLOGY_FINGERPRINT",
+      "severity": "INFORMATIONAL",
+      "title": "Server framework version disclosed in response headers",
+      "description": "HTTP responses from api.techstride.io include the X-Powered-By: Express header. Error responses additionally disclose the Node.js version. This information assists attackers in targeting known vulnerabilities.",
+      "affected_asset": {"type": "DOMAIN", "value": "api.techstride.io"},
+      "discovery_method": "PASSIVE",
+      "evidence": {
+        "header": "X-Powered-By: Express",
+        "error_response_leakage": "Node.js v22.x.x stack trace visible in 500 responses"
+      },
+      "first_seen": "2026-06-20T09:06:00Z",
+      "last_seen": "2026-06-20T09:06:00Z"
+    },
+    {
+      "id": "ionix-finding-005",
+      "type": "UNAUTHENTICATED_ENDPOINT",
+      "severity": "INFORMATIONAL",
+      "title": "Stripe webhook endpoint publicly accessible without IP allowlisting",
+      "description": "The POST /api/v1/webhook endpoint is publicly accessible from any IP address. Stripe recommends restricting webhook delivery to Stripe's published IP ranges. The endpoint does validate Stripe-Signature headers, but the absence of IP allowlisting increases the attack surface for signature bypass attempts.",
+      "affected_asset": {"type": "ENDPOINT", "value": "https://api.techstride.io/api/v1/webhook"},
+      "discovery_method": "PASSIVE",
+      "evidence": {
+        "accessible_from_external": true,
+        "signature_validation": "present",
+        "ip_allowlisting": "absent"
+      },
+      "first_seen": "2026-06-10T00:00:00Z",
+      "last_seen": "2026-06-20T09:00:00Z"
+    },
+    {
+      "id": "ionix-finding-006",
+      "type": "SEARCH_ENDPOINT_PARAM_REFLECTION",
+      "severity": "INFORMATIONAL",
+      "title": "Product search endpoint accepts user-controlled query parameter without observable sanitization",
+      "description": "The GET /api/v1/products/search endpoint accepts a 'q' query parameter and reflects it in the context of the database query. Crawl-based analysis confirms the parameter is included in response metadata. Detailed validation behavior requires authenticated analysis.",
+      "affected_asset": {"type": "ENDPOINT", "value": "https://api.techstride.io/api/v1/products/search"},
+      "discovery_method": "ACTIVE_CRAWL",
+      "evidence": {
+        "example_request": "GET /api/v1/products/search?q=shoes",
+        "param_reflected_in_response": true,
+        "auth_required": false
+      },
+      "first_seen": "2026-06-20T09:10:00Z",
+      "last_seen": "2026-06-20T09:10:00Z"
+    }
+  ]
+}

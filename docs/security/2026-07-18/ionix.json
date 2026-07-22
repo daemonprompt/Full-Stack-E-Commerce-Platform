@@ -1,0 +1,171 @@
+{
+  "meta": {
+    "scan_id": "ionix-scan-2026-07-18-c9h5f1e4",
+    "timestamp": "2026-07-18T09:00:00Z",
+    "organization": "TechStride Commerce",
+    "scan_type": "full",
+    "scan_scope": ["techstride.io", "*.techstride.io"]
+  },
+  "assets": [
+    {
+      "id": "asset-001",
+      "type": "DOMAIN",
+      "value": "techstride.io",
+      "first_seen": "2026-05-01T00:00:00Z",
+      "last_seen": "2026-07-18T09:00:00Z",
+      "tags": ["primary", "production"]
+    },
+    {
+      "id": "asset-002",
+      "type": "DOMAIN",
+      "value": "store.techstride.io",
+      "first_seen": "2026-05-01T00:00:00Z",
+      "last_seen": "2026-07-18T09:00:00Z",
+      "tags": ["storefront", "next-js"]
+    },
+    {
+      "id": "asset-003",
+      "type": "DOMAIN",
+      "value": "api.techstride.io",
+      "first_seen": "2026-05-01T00:00:00Z",
+      "last_seen": "2026-07-18T09:00:00Z",
+      "tags": ["api", "express"]
+    },
+    {
+      "id": "asset-005",
+      "type": "IP",
+      "value": "54.236.112.83",
+      "first_seen": "2026-05-01T00:00:00Z",
+      "last_seen": "2026-07-18T09:00:00Z",
+      "tags": ["alb", "aws"],
+      "metadata": {"open_ports": [80, 443, 6379]}
+    },
+    {
+      "id": "asset-007",
+      "type": "CERTIFICATE",
+      "value": "*.techstride.io",
+      "first_seen": "2026-05-01T00:00:00Z",
+      "last_seen": "2026-07-18T09:00:00Z",
+      "metadata": {"not_after": "2026-08-31T00:00:00Z", "days_until_expiry": 44}
+    },
+    {
+      "id": "asset-014",
+      "type": "ENDPOINT",
+      "value": "https://api.techstride.io/api/v1/graphql",
+      "first_seen": "2026-06-15T00:00:00Z",
+      "last_seen": "2026-07-18T09:00:00Z",
+      "tags": ["api-endpoint", "graphql"],
+      "metadata": {"method": "POST", "accepts_introspection": true, "cors_origin": "*"}
+    },
+    {
+      "id": "asset-015",
+      "type": "ENDPOINT",
+      "value": "https://api.techstride.io/api/v1/webhook/ping",
+      "first_seen": "2026-07-01T00:00:00Z",
+      "last_seen": "2026-07-18T09:00:00Z",
+      "tags": ["api-endpoint", "public"],
+      "metadata": {"method": "POST", "auth_required": false}
+    },
+    {
+      "id": "asset-017",
+      "type": "ENDPOINT",
+      "value": "https://api.techstride.io/api/v1/products/catalog/import",
+      "first_seen": "2026-07-17T00:00:00Z",
+      "last_seen": "2026-07-18T09:00:00Z",
+      "tags": ["api-endpoint", "new", "authenticated"],
+      "metadata": {"method": "POST", "auth_required": true, "content_type": "application/xml"}
+    },
+    {
+      "id": "asset-018",
+      "type": "ENDPOINT",
+      "value": "https://api.techstride.io/api/v1/users/settings",
+      "first_seen": "2026-07-17T00:00:00Z",
+      "last_seen": "2026-07-18T09:00:00Z",
+      "tags": ["api-endpoint", "new", "authenticated"],
+      "metadata": {"method": "PUT", "auth_required": true, "accepts_json": true}
+    }
+  ],
+  "findings": [
+    {
+      "id": "ionix-finding-007",
+      "type": "ACTIVE_PROBE",
+      "severity": "HIGH",
+      "title": "Server-Side Request Forgery (SSRF) — Confirmed Outbound Request (Retest)",
+      "description": "Retest of the SSRF finding from the 2026-07-02 scan confirms the vulnerability is still present. POST /api/v1/webhook/ping with the AWS IMDS URL continues to return HTTP 200, confirming the application still initiates outbound connections to the metadata service. No remediation has been applied.",
+      "affected_asset": {
+        "type": "ENDPOINT",
+        "value": "https://api.techstride.io/api/v1/webhook/ping"
+      },
+      "discovery_method": "ACTIVE_PROBE",
+      "evidence": {
+        "request": {
+          "method": "POST",
+          "url": "https://api.techstride.io/api/v1/webhook/ping",
+          "headers": {"Content-Type": "application/json"},
+          "body": "{\"url\": \"http://169.254.169.254/latest/meta-data/\"}"
+        },
+        "response": {
+          "status": 200,
+          "body": "{\"data\": {\"status\": 200, \"ok\": true}, \"message\": \"Endpoint reachable\"}"
+        },
+        "out_of_band": {
+          "http_response_received": true,
+          "response_time_ms": 9,
+          "retest_status": "CONFIRMED_OPEN"
+        }
+      },
+      "first_seen": "2026-07-01T14:22:07Z",
+      "last_seen": "2026-07-18T09:00:00Z"
+    },
+    {
+      "id": "ionix-finding-008",
+      "type": "EXPOSED_PORT",
+      "severity": "HIGH",
+      "title": "Redis port 6379 accessible from public internet",
+      "description": "Port 6379 remains accessible from external IPs. No AUTH required. Redis banner confirms connection accepted.",
+      "affected_asset": {"type": "IP", "value": "54.236.112.83"},
+      "discovery_method": "ACTIVE_PORT_SCAN",
+      "evidence": {
+        "port": 6379,
+        "auth_required": false,
+        "connection_successful": true
+      },
+      "first_seen": "2026-07-02T08:45:00Z",
+      "last_seen": "2026-07-18T09:00:00Z"
+    },
+    {
+      "id": "ionix-finding-010",
+      "type": "NEW_ENDPOINT_DISCOVERY",
+      "severity": "INFORMATIONAL",
+      "title": "New endpoint discovered: XML catalog import (accepts application/xml)",
+      "description": "A new endpoint POST /api/v1/products/catalog/import was discovered in this scan period. The endpoint accepts Content-Type: application/xml and is restricted to authenticated admin users. The endpoint was surfaced via API documentation discovery and response header analysis.",
+      "affected_asset": {
+        "type": "ENDPOINT",
+        "value": "https://api.techstride.io/api/v1/products/catalog/import"
+      },
+      "discovery_method": "ACTIVE_CRAWL",
+      "evidence": {
+        "first_observed": "2026-07-17T00:00:00Z",
+        "content_type_accepted": "application/xml",
+        "auth_required": true
+      },
+      "first_seen": "2026-07-17T00:00:00Z",
+      "last_seen": "2026-07-18T09:00:00Z"
+    },
+    {
+      "id": "ionix-finding-011",
+      "type": "CERTIFICATE_EXPIRY",
+      "severity": "MEDIUM",
+      "title": "TLS certificate expiring within 45 days",
+      "description": "Wildcard certificate *.techstride.io expires 2026-08-31 (44 days). Escalated from LOW to MEDIUM due to proximity.",
+      "affected_asset": {"type": "CERTIFICATE", "value": "*.techstride.io"},
+      "discovery_method": "PASSIVE",
+      "evidence": {
+        "certificate_expiry": "2026-08-31T00:00:00Z",
+        "days_remaining": 44
+      },
+      "first_seen": "2026-06-20T09:00:00Z",
+      "last_seen": "2026-07-18T09:00:00Z"
+    }
+  ]
+}

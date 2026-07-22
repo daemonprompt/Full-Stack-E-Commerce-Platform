@@ -1,0 +1,186 @@
+{
+  "ok": false,
+  "packageManager": "npm",
+  "summary": "8 vulnerable dependency paths",
+  "projectName": "ecommerce-server",
+  "displayTargetFile": "src/server/package.json",
+  "org": "techstride-engineering",
+  "isPrivate": true,
+  "dependencyCount": 152,
+  "vulnerabilities": [
+    {
+      "id": "SNYK-JS-XMLDOM-2806748-direct",
+      "url": "https://snyk.io/vuln/SNYK-JS-XMLDOM-2806748",
+      "title": "XML External Entity (XXE) Injection",
+      "type": "vuln",
+      "packageName": "xmldom",
+      "pkgName": "xmldom",
+      "version": "0.1.31",
+      "pkgVersion": "0.1.31",
+      "severity": "high",
+      "cvssScore": 7.5,
+      "CVSSv3": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+      "description": "Affected versions of this package are vulnerable to XXE injection via the parseFromString function. DTD external entity declarations are not disabled by default.",
+      "identifiers": {
+        "CVE": ["CVE-2022-39353"],
+        "CWE": ["CWE-611"],
+        "GHSA": ["GHSA-crh6-fp67-6883"]
+      },
+      "from": [
+        "ecommerce-server@1.0.0",
+        "xmldom@0.1.31"
+      ],
+      "upgradePath": [false, "xmldom@0.7.5"],
+      "fixedIn": ["0.7.0"],
+      "isUpgradable": true,
+      "isPatchable": false,
+      "language": "js"
+    },
+    {
+      "id": "SNYK-JS-XMLDOM-2806748-transitive",
+      "url": "https://snyk.io/vuln/SNYK-JS-XMLDOM-2806748",
+      "title": "XML External Entity (XXE) Injection",
+      "type": "vuln",
+      "packageName": "xmldom",
+      "pkgName": "xmldom",
+      "version": "0.1.31",
+      "pkgVersion": "0.1.31",
+      "severity": "high",
+      "cvssScore": 7.5,
+      "CVSSv3": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+      "description": "Affected versions of this package are vulnerable to XXE injection. Same CVE as above — this entry represents the transitive dependency path via passport-twitter.",
+      "identifiers": {
+        "CVE": ["CVE-2022-39353"],
+        "CWE": ["CWE-611"],
+        "GHSA": ["GHSA-crh6-fp67-6883"]
+      },
+      "from": [
+        "ecommerce-server@1.0.0",
+        "passport-twitter@1.0.4",
+        "passport-oauth1@1.3.0",
+        "xmldom@0.1.31"
+      ],
+      "upgradePath": [false, "passport-twitter@1.0.4", "passport-oauth1@1.3.0", "xmldom@0.7.5"],
+      "fixedIn": ["0.7.0"],
+      "isUpgradable": false,
+      "language": "js"
+    },
+    {
+      "id": "SNYK-JS-JSONWEBTOKEN-3180022",
+      "url": "https://snyk.io/vuln/SNYK-JS-JSONWEBTOKEN-3180022",
+      "title": "Improper Restriction of Security Token Assignment",
+      "type": "vuln",
+      "packageName": "jsonwebtoken",
+      "pkgName": "jsonwebtoken",
+      "version": "8.5.1",
+      "pkgVersion": "8.5.1",
+      "severity": "high",
+      "cvssScore": 7.6,
+      "CVSSv3": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:L/A:L",
+      "description": "Algorithm confusion vulnerability in jsonwebtoken prior to 9.0.0.",
+      "identifiers": {"CVE": ["CVE-2022-23529"], "CWE": ["CWE-327"]},
+      "from": ["ecommerce-server@1.0.0", "jsonwebtoken@8.5.1"],
+      "fixedIn": ["9.0.0"],
+      "isUpgradable": true,
+      "language": "js"
+    },
+    {
+      "id": "SNYK-JS-SEMVER-3247795",
+      "url": "https://snyk.io/vuln/SNYK-JS-SEMVER-3247795",
+      "title": "Regular Expression Denial of Service (ReDoS)",
+      "type": "vuln",
+      "packageName": "semver",
+      "pkgName": "semver",
+      "version": "6.3.0",
+      "pkgVersion": "6.3.0",
+      "severity": "medium",
+      "cvssScore": 5.3,
+      "identifiers": {"CVE": ["CVE-2022-25883"], "CWE": ["CWE-1333"]},
+      "from": ["ecommerce-server@1.0.0", "node-gyp@9.4.0", "semver@6.3.0"],
+      "fixedIn": ["6.3.1"],
+      "isUpgradable": true,
+      "language": "js"
+    }
+  ],
+  "codeIssues": [
+    {
+      "id": "snyk-code-session-001",
+      "ruleId": "javascript/SessionFixation",
+      "ruleName": "Session Fixation",
+      "severity": "high",
+      "message": "Session identifier is not regenerated after authentication.",
+      "filePath": "src/server/src/modules/auth/auth.controller.ts",
+      "startLine": 72,
+      "endLine": 74,
+      "cwe": ["CWE-384"]
+    },
+    {
+      "id": "snyk-code-redos-001",
+      "ruleId": "javascript/ReDoS",
+      "ruleName": "Regular Expression Denial of Service",
+      "severity": "medium",
+      "message": "User-controlled input flows into RegExp constructor.",
+      "filePath": "src/server/src/modules/product/product.controller.ts",
+      "startLine": 422,
+      "endLine": 422,
+      "cwe": ["CWE-1333"]
+    },
+    {
+      "id": "snyk-code-path-traversal-001",
+      "ruleId": "javascript/PathTraversal",
+      "ruleName": "Path Traversal",
+      "severity": "high",
+      "message": "User-controlled input in path.join() without validation.",
+      "filePath": "src/server/src/modules/order/order.controller.ts",
+      "startLine": 13,
+      "endLine": 15,
+      "cwe": ["CWE-22"]
+    },
+    {
+      "id": "snyk-code-ssrf-001",
+      "ruleId": "javascript/SSRF",
+      "ruleName": "Server-Side Request Forgery",
+      "severity": "high",
+      "message": "HTTP request made with user-controlled URL.",
+      "filePath": "src/server/src/modules/webhook/webhook.controller.ts",
+      "startLine": 38,
+      "endLine": 38,
+      "cwe": ["CWE-918"]
+    },
+    {
+      "id": "snyk-code-mass-assign-001",
+      "ruleId": "javascript/MassAssignment",
+      "ruleName": "Mass Assignment",
+      "severity": "high",
+      "message": "req.body spread into database update without field allowlisting. Attacker-controlled fields may be persisted including 'role' and 'email'.",
+      "filePath": "src/server/src/modules/user/user.controller.ts",
+      "startLine": 140,
+      "endLine": 148,
+      "cwe": ["CWE-915"],
+      "dataFlow": [
+        {"file": "src/server/src/modules/user/user.controller.ts", "line": 131, "description": "req.body read from HTTP request"},
+        {"file": "src/server/src/modules/user/user.controller.ts", "line": 144, "description": "req.body spread into updateData"},
+        {"file": "src/server/src/modules/user/user.controller.ts", "line": 148, "description": "updateData passed to prisma.user.update()"}
+      ]
+    },
+    {
+      "id": "snyk-code-xss-001",
+      "ruleId": "javascript/ReactDangerouslySetInnerHTML",
+      "ruleName": "Cross-Site Scripting (Stored) — dangerouslySetInnerHTML",
+      "severity": "high",
+      "message": "Product description rendered via dangerouslySetInnerHTML without HTML sanitization. If an admin stores HTML payload in the description field, it executes in any admin's browser on the dashboard page.",
+      "filePath": "src/client/app/(private)/dashboard/products/ProductSummary.tsx",
+      "startLine": 6,
+      "endLine": 8,
+      "cwe": ["CWE-79"],
+      "dataFlow": [
+        {"file": "src/client/app/(private)/dashboard/products/ProductSummary.tsx", "line": 6, "description": "product.description from server-fetched prop"},
+        {"file": "src/client/app/(private)/dashboard/products/ProductSummary.tsx", "line": 8, "description": "dangerouslySetInnerHTML rendered without sanitization"}
+      ]
+    }
+  ],
+  "filtered": {
+    "ignore": [],
+    "patch": []
+  }
+}

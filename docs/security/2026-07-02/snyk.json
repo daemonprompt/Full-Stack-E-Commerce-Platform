@@ -1,0 +1,145 @@
+{
+  "ok": false,
+  "packageManager": "npm",
+  "summary": "6 vulnerable dependency paths",
+  "projectName": "ecommerce-server",
+  "displayTargetFile": "src/server/package.json",
+  "org": "techstride-engineering",
+  "isPrivate": true,
+  "dependencyCount": 151,
+  "vulnerabilities": [
+    {
+      "id": "SNYK-JS-XMLDOM-2806748",
+      "url": "https://snyk.io/vuln/SNYK-JS-XMLDOM-2806748",
+      "title": "Improperly Controlled Modification of Dynamically-Determined Object Attributes (Prototype Pollution) / XXE",
+      "type": "vuln",
+      "packageName": "xmldom",
+      "pkgName": "xmldom",
+      "version": "0.1.31",
+      "pkgVersion": "0.1.31",
+      "severity": "high",
+      "cvssScore": 7.5,
+      "CVSSv3": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+      "description": "Affected versions of this package are vulnerable to XXE (XML External Entity) injection. The DTD external entity declarations are not disabled, allowing an attacker who can supply malformed XML to trigger file disclosure or SSRF via entity resolution.",
+      "identifiers": {
+        "CVE": ["CVE-2022-39353"],
+        "CWE": ["CWE-611", "CWE-776"],
+        "GHSA": ["GHSA-crh6-fp67-6883"]
+      },
+      "from": [
+        "ecommerce-server@1.0.0",
+        "passport-twitter@1.0.4",
+        "passport-oauth1@1.3.0",
+        "xmldom@0.1.31"
+      ],
+      "upgradePath": [false, "passport-twitter@1.0.4", "passport-oauth1@1.3.0", "xmldom@0.7.5"],
+      "fixedIn": ["0.7.0"],
+      "isUpgradable": false,
+      "isPatchable": false,
+      "language": "js"
+    },
+    {
+      "id": "SNYK-JS-JSONWEBTOKEN-3180022",
+      "url": "https://snyk.io/vuln/SNYK-JS-JSONWEBTOKEN-3180022",
+      "title": "Improper Restriction of Security Token Assignment",
+      "type": "vuln",
+      "packageName": "jsonwebtoken",
+      "pkgName": "jsonwebtoken",
+      "version": "8.5.1",
+      "pkgVersion": "8.5.1",
+      "severity": "high",
+      "cvssScore": 7.6,
+      "CVSSv3": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:L/A:L",
+      "description": "Versions of jsonwebtoken prior to 9.0.0 are vulnerable to algorithm confusion. An attacker may supply a 'none' or unexpected algorithm in the JWT header.",
+      "identifiers": {
+        "CVE": ["CVE-2022-23529"],
+        "CWE": ["CWE-327"]
+      },
+      "from": ["ecommerce-server@1.0.0", "jsonwebtoken@8.5.1"],
+      "upgradePath": [false, "jsonwebtoken@9.0.0"],
+      "fixedIn": ["9.0.0"],
+      "isUpgradable": true,
+      "language": "js"
+    },
+    {
+      "id": "SNYK-JS-SEMVER-3247795",
+      "url": "https://snyk.io/vuln/SNYK-JS-SEMVER-3247795",
+      "title": "Regular Expression Denial of Service (ReDoS)",
+      "type": "vuln",
+      "packageName": "semver",
+      "pkgName": "semver",
+      "version": "6.3.0",
+      "pkgVersion": "6.3.0",
+      "severity": "medium",
+      "cvssScore": 5.3,
+      "CVSSv3": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L",
+      "description": "Affected versions are vulnerable to ReDoS via the SemVer version validation regex.",
+      "identifiers": {
+        "CVE": ["CVE-2022-25883"],
+        "CWE": ["CWE-1333"]
+      },
+      "from": ["ecommerce-server@1.0.0", "node-gyp@9.4.0", "semver@6.3.0"],
+      "fixedIn": ["5.7.2", "6.3.1", "7.5.2"],
+      "isUpgradable": true,
+      "language": "js"
+    }
+  ],
+  "codeIssues": [
+    {
+      "id": "snyk-code-session-001",
+      "ruleId": "javascript/SessionFixation",
+      "ruleName": "Session Fixation",
+      "severity": "high",
+      "message": "Session identifier is not regenerated after authentication. req.session.save() called without prior req.session.regenerate().",
+      "filePath": "src/server/src/modules/auth/auth.controller.ts",
+      "startLine": 72,
+      "endLine": 74,
+      "cwe": ["CWE-384"]
+    },
+    {
+      "id": "snyk-code-redos-001",
+      "ruleId": "javascript/ReDoS",
+      "ruleName": "Regular Expression Denial of Service",
+      "severity": "medium",
+      "message": "User-controlled input flows into RegExp constructor without sanitization.",
+      "filePath": "src/server/src/modules/product/product.controller.ts",
+      "startLine": 422,
+      "endLine": 422,
+      "cwe": ["CWE-1333", "CWE-730"]
+    },
+    {
+      "id": "snyk-code-path-traversal-001",
+      "ruleId": "javascript/PathTraversal",
+      "ruleName": "Path Traversal",
+      "severity": "high",
+      "message": "User-controlled input from req.query.file flows into path.join() without validation, enabling directory traversal.",
+      "filePath": "src/server/src/modules/order/order.controller.ts",
+      "startLine": 13,
+      "endLine": 15,
+      "cwe": ["CWE-22"],
+      "dataFlow": [
+        {"file": "src/server/src/modules/order/order.controller.ts", "line": 11, "description": "file parameter read from req.query"},
+        {"file": "src/server/src/modules/order/order.controller.ts", "line": 13, "description": "path.join called with unsanitized input"}
+      ]
+    },
+    {
+      "id": "snyk-code-ssrf-001",
+      "ruleId": "javascript/SSRF",
+      "ruleName": "Server-Side Request Forgery",
+      "severity": "high",
+      "message": "HTTP request made with user-controlled URL without allowlist validation. Internal network resources may be reachable.",
+      "filePath": "src/server/src/modules/webhook/webhook.controller.ts",
+      "startLine": 38,
+      "endLine": 38,
+      "cwe": ["CWE-918"],
+      "dataFlow": [
+        {"file": "src/server/src/modules/webhook/webhook.controller.ts", "line": 35, "description": "url read from req.body"},
+        {"file": "src/server/src/modules/webhook/webhook.controller.ts", "line": 38, "description": "fetch() called with unsanitized url"}
+      ]
+    }
+  ],
+  "filtered": {
+    "ignore": [],
+    "patch": []
+  }
+}

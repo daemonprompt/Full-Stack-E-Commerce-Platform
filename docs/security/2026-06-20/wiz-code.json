@@ -1,0 +1,117 @@
+{
+  "data": {
+    "codeFindings": {
+      "nodes": [
+        {
+          "id": "a1b2c3d4-e5f6-4789-ab12-cd34ef567890",
+          "status": "OPEN",
+          "severity": "CRITICAL",
+          "type": "CODE_ISSUE",
+          "createdAt": "2026-06-20T07:41:33Z",
+          "updatedAt": "2026-06-20T07:41:33Z",
+          "title": "Hardcoded credential — JWT signing secret",
+          "description": "A hardcoded fallback value for the JWT signing secret is present in source code. The value 'jwt-secret-dev-fallback-2024' is used when the ACCESS_TOKEN_SECRET environment variable is absent. If the environment variable is not set in production, all issued tokens are signed with a publicly visible secret, enabling arbitrary token forgery.",
+          "path": "src/server/src/shared/utils/auth/tokenUtils.ts",
+          "startLine": 2,
+          "endLine": 2,
+          "snippet": "const ACCESS_TOKEN_FALLBACK = 'jwt-secret-dev-fallback-2024';",
+          "rule": {
+            "id": "WCR-TS-098",
+            "name": "Hardcoded Credential",
+            "cwe": "CWE-798",
+            "owasp": "A02:2021 - Cryptographic Failures"
+          },
+          "remediationGuidance": "Remove the hardcoded fallback value. Throw an error at startup if ACCESS_TOKEN_SECRET is absent. Reference the secret from AWS Secrets Manager or SSM Parameter Store."
+        },
+        {
+          "id": "b2c3d4e5-f6a7-4890-bc23-de45fg678901",
+          "status": "OPEN",
+          "severity": "HIGH",
+          "type": "CODE_ISSUE",
+          "createdAt": "2026-06-20T07:42:11Z",
+          "updatedAt": "2026-06-20T07:42:11Z",
+          "title": "SQL injection via string interpolation in raw query",
+          "description": "User-supplied input from the query parameter 'q' is interpolated directly into a raw SQL string passed to $queryRawUnsafe. An attacker can inject arbitrary SQL including UNION statements to exfiltrate data from any table accessible to the database user.",
+          "path": "src/server/src/modules/product/product.controller.ts",
+          "startLine": 406,
+          "endLine": 412,
+          "snippet": "const results = await prisma.$queryRawUnsafe(\n  `SELECT id, name, description...WHERE name ILIKE '%${q}%'...`\n);",
+          "rule": {
+            "id": "WCR-TS-012",
+            "name": "SQL Injection",
+            "cwe": "CWE-89",
+            "owasp": "A03:2021 - Injection"
+          },
+          "remediationGuidance": "Use parameterized queries. Replace $queryRawUnsafe with prisma.$queryRaw using tagged template literals, or use the Prisma ORM where clause with 'contains' mode."
+        },
+        {
+          "id": "c3d4e5f6-a7b8-4901-cd34-ef56gh789012",
+          "status": "OPEN",
+          "severity": "MEDIUM",
+          "type": "CODE_ISSUE",
+          "createdAt": "2026-06-20T07:43:05Z",
+          "updatedAt": "2026-06-20T07:43:05Z",
+          "title": "Non-constant-time comparison of security token",
+          "description": "The resetPassword method compares the stored hashed reset token against the submitted hash using the JavaScript !== operator. String comparison in V8 short-circuits on the first differing character, creating a timing oracle that can be used to reconstruct valid token values through statistical analysis of response time variance.",
+          "path": "src/server/src/modules/auth/auth.service.ts",
+          "startLine": 141,
+          "endLine": 141,
+          "snippet": "if (user.resetPasswordToken !== hashedToken) {",
+          "rule": {
+            "id": "WCR-TS-045",
+            "name": "Timing Attack on Security Token",
+            "cwe": "CWE-208",
+            "owasp": "A02:2021 - Cryptographic Failures"
+          },
+          "remediationGuidance": "Use crypto.timingSafeEqual(Buffer.from(user.resetPasswordToken), Buffer.from(hashedToken)) for constant-time comparison of security-sensitive strings."
+        },
+        {
+          "id": "d4e5f6a7-b8c9-4012-de45-fg67hi890123",
+          "status": "OPEN",
+          "severity": "MEDIUM",
+          "type": "CODE_ISSUE",
+          "createdAt": "2026-06-20T07:44:18Z",
+          "updatedAt": "2026-06-20T07:44:18Z",
+          "title": "User-controlled input used in RegExp constructor",
+          "description": "The advancedSearch handler constructs a regular expression using unsanitized user input as the pattern string. Specially crafted input (e.g., catastrophic backtracking patterns like '(a+)+') can cause the regex engine to consume excessive CPU cycles, leading to application denial of service.",
+          "path": "src/server/src/modules/product/product.controller.ts",
+          "startLine": 422,
+          "endLine": 422,
+          "snippet": "const pattern = new RegExp(q as string, \"i\");",
+          "rule": {
+            "id": "WCR-TS-067",
+            "name": "Regular Expression Denial of Service (ReDoS)",
+            "cwe": "CWE-1333",
+            "owasp": "A06:2021 - Vulnerable and Outdated Components"
+          },
+          "remediationGuidance": "Sanitize user input before using it as a regex pattern. Consider using a safe regex library, pre-compiling safe patterns, or switching to database full-text search instead of in-process regex filtering."
+        },
+        {
+          "id": "e5f6a7b8-c9d0-4123-ef56-gh78ij901234",
+          "status": "OPEN",
+          "severity": "HIGH",
+          "type": "CODE_ISSUE",
+          "createdAt": "2026-06-20T07:45:31Z",
+          "updatedAt": "2026-06-20T07:45:31Z",
+          "title": "Missing authentication middleware on mutable route",
+          "description": "The PUT /reviews/:id route in review.routes.ts does not include the 'protect' middleware, allowing any unauthenticated request to modify any review record. The DELETE route on the same resource correctly requires authentication, indicating an inconsistency. Any client can overwrite review content and ratings for any product.",
+          "path": "src/server/src/modules/review/review.routes.ts",
+          "startLine": 8,
+          "endLine": 8,
+          "snippet": "router.put(\"/:id\", controller.updateReview);",
+          "rule": {
+            "id": "WCR-TS-031",
+            "name": "Broken Object Level Authorization",
+            "cwe": "CWE-639",
+            "owasp": "A01:2021 - Broken Access Control"
+          },
+          "remediationGuidance": "Add the 'protect' middleware before the updateReview handler. Verify that the authenticated user is the original author of the review before allowing updates."
+        }
+      ],
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": null
+      }
+    }
+  }
+}

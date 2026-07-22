@@ -1,0 +1,174 @@
+{
+  "data": {
+    "issues": {
+      "nodes": [
+        {
+          "id": "a3f92c81-4d1e-4b77-9a3c-8f2e1d0c5b44",
+          "status": "OPEN",
+          "severity": "HIGH",
+          "type": "CLOUD_CONFIGURATION",
+          "createdAt": "2026-06-19T14:22:11Z",
+          "updatedAt": "2026-07-18T08:00:00Z",
+          "resolvedAt": null,
+          "title": "ElastiCache cluster has no AUTH token configured",
+          "description": "The ElastiCache Redis cluster 'ecommerce-cache' does not require an AUTH token. Any client reaching port 6379 has unrestricted access to all cached data.",
+          "entity": {
+            "id": "cluster/ecommerce-cache",
+            "name": "ecommerce-cache",
+            "type": "ELASTICACHE_CLUSTER",
+            "cloudPlatform": "AWS",
+            "region": "us-east-1"
+          },
+          "control": {
+            "id": "WC-AWS-ElastiCache-007",
+            "name": "ElastiCache Redis clusters should require AUTH tokens",
+            "severity": "HIGH"
+          },
+          "securitySubCategories": []
+        },
+        {
+          "id": "b7d4e219-0a33-4f2c-bc91-7e3a5d8f1c62",
+          "status": "OPEN",
+          "severity": "HIGH",
+          "type": "CLOUD_CONFIGURATION",
+          "createdAt": "2026-06-19T14:23:05Z",
+          "updatedAt": "2026-07-18T08:00:00Z",
+          "resolvedAt": null,
+          "title": "Security group allows unrestricted inbound access to Redis port 6379",
+          "description": "Security group 'ecommerce-cache' permits inbound TCP from 0.0.0.0/0 on port 6379.",
+          "entity": {
+            "id": "sg-0ec3a92f1d4b78c45",
+            "name": "ecommerce-cache",
+            "type": "SECURITY_GROUP",
+            "cloudPlatform": "AWS",
+            "region": "us-east-1"
+          },
+          "control": {
+            "id": "WC-AWS-SG-003",
+            "name": "Security groups should not permit unrestricted access to sensitive ports",
+            "severity": "HIGH"
+          },
+          "securitySubCategories": []
+        },
+        {
+          "id": "c1a83d47-5f29-4e11-a7b2-0d9c6e3f2891",
+          "status": "OPEN",
+          "severity": "MEDIUM",
+          "type": "CLOUD_CONFIGURATION",
+          "createdAt": "2026-06-19T14:24:18Z",
+          "updatedAt": "2026-07-18T08:00:00Z",
+          "resolvedAt": null,
+          "title": "ECS task definition does not specify a non-root user",
+          "description": "The ECS task definition 'ecommerce-api:9' runs container processes as root (UID 0).",
+          "entity": {
+            "id": "arn:aws:ecs:us-east-1:123456789012:task-definition/ecommerce-api:9",
+            "name": "ecommerce-api:9",
+            "type": "ECS_TASK_DEFINITION",
+            "cloudPlatform": "AWS",
+            "region": "us-east-1"
+          },
+          "control": {
+            "id": "WC-AWS-ECS-004",
+            "name": "ECS task definitions should specify a non-root user",
+            "severity": "MEDIUM"
+          },
+          "securitySubCategories": []
+        },
+        {
+          "id": "h6j38f06-0i72-4e66-f2g7-5i4h1j8k7346",
+          "status": "OPEN",
+          "severity": "MEDIUM",
+          "type": "CLOUD_CONFIGURATION",
+          "createdAt": "2026-07-01T16:10:22Z",
+          "updatedAt": "2026-07-18T08:00:00Z",
+          "resolvedAt": null,
+          "title": "ECS task IAM role grants overly broad S3 permissions",
+          "description": "IAM role 'ecommerce-task-role' grants s3:* on * — exceeds minimum required permissions.",
+          "entity": {
+            "id": "arn:aws:iam::123456789012:role/ecommerce-task-role",
+            "name": "ecommerce-task-role",
+            "type": "IAM_ROLE",
+            "cloudPlatform": "AWS",
+            "region": "us-east-1"
+          },
+          "control": {
+            "id": "WC-AWS-IAM-021",
+            "name": "IAM policies should follow the principle of least privilege",
+            "severity": "MEDIUM"
+          },
+          "securitySubCategories": []
+        },
+        {
+          "id": "j7k49g17-1j83-4f77-g3h8-6j5i2k9l8457",
+          "status": "OPEN",
+          "severity": "CRITICAL",
+          "type": "CLOUD_CONFIGURATION",
+          "createdAt": "2026-07-17T22:05:14Z",
+          "updatedAt": "2026-07-18T08:00:00Z",
+          "resolvedAt": null,
+          "title": "Container image contains known high-severity vulnerable dependency (CVE-2022-39353)",
+          "description": "Container image scan of the ECS task definition 'ecommerce-api:9' detected the npm package xmldom@0.1.31 in the container filesystem. This version is affected by CVE-2022-39353 (XXE injection, CVSS 7.5). The package is present both as a direct dependency (added in the latest build) and transitively via passport-twitter → passport-oauth1.",
+          "entity": {
+            "id": "arn:aws:ecs:us-east-1:123456789012:task-definition/ecommerce-api:9",
+            "name": "ecommerce-api:9",
+            "type": "ECS_TASK_DEFINITION",
+            "cloudPlatform": "AWS",
+            "region": "us-east-1"
+          },
+          "control": {
+            "id": "WC-AWS-CONTAINER-017",
+            "name": "Container images should not include packages with known critical or high vulnerabilities",
+            "description": "Container image scanning detected a known-vulnerable package. Remediate before deploying to production.",
+            "severity": "CRITICAL"
+          },
+          "securitySubCategories": [
+            {
+              "title": "A06:2021 - Vulnerable and Outdated Components",
+              "category": {
+                "name": "Dependency Vulnerability",
+                "framework": {"name": "OWASP Top 10 2021", "shortName": "OWASP-2021"}
+              }
+            }
+          ]
+        },
+        {
+          "id": "k8l50h28-2k94-4g88-h4i9-7k6j3l0m9568",
+          "status": "OPEN",
+          "severity": "HIGH",
+          "type": "CLOUD_CONFIGURATION",
+          "createdAt": "2026-07-17T22:06:31Z",
+          "updatedAt": "2026-07-18T08:00:00Z",
+          "resolvedAt": null,
+          "title": "Secret value detected in ECS task definition environment variable",
+          "description": "The ECS task definition 'ecommerce-api:9' contains an environment variable whose value matches a pattern consistent with a JWT secret or similar credential. The variable 'ACCESS_TOKEN_FALLBACK' contains a string value that appears to be a hardcoded secret. Secrets should be referenced from AWS Secrets Manager rather than stored as plaintext values.",
+          "entity": {
+            "id": "arn:aws:ecs:us-east-1:123456789012:task-definition/ecommerce-api:9",
+            "name": "ecommerce-api:9",
+            "type": "ECS_TASK_DEFINITION",
+            "cloudPlatform": "AWS",
+            "region": "us-east-1"
+          },
+          "control": {
+            "id": "WC-AWS-ECS-009",
+            "name": "ECS task definitions should not contain hardcoded secrets",
+            "description": "Secret values in plaintext environment variables are exposed in the ECS task definition and CloudTrail API logs.",
+            "severity": "HIGH"
+          },
+          "securitySubCategories": [
+            {
+              "title": "IA-5 - Authenticator Management",
+              "category": {
+                "name": "Identification and Authentication",
+                "framework": {"name": "NIST SP 800-53 Rev 5", "shortName": "NIST-800-53"}
+              }
+            }
+          ]
+        }
+      ],
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "eyJpZCI6Ims4bDUwaDI4LTJrOTQtNGc4OC1oNGk5LTdrNmozbDBtOTU2OCJ9"
+      }
+    }
+  }
+}

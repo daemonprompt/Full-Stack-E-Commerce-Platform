@@ -205,6 +205,77 @@
           "response": {"status": 200, "body_preview": "{\"status\": \"success\", \"data\": {\"review\": {\"rating\": 1}}}"}
         }
       ]
+    },
+    {
+      "type_index": "3670016",
+      "name": "Race condition on coupon redemption (persists from prior scan)",
+      "severity": "medium",
+      "confidence": "firm",
+      "host": "https://api.techstride.io",
+      "path": "/api/v1/orders/apply-coupon",
+      "description": "Race condition on single-use coupon redemption — first identified in 2026-07-02 scan. Concurrent requests bypass the single-use restriction. Retest confirms vulnerability persists in this build.",
+      "remediation": "Use SELECT FOR UPDATE or atomic compare-and-swap for coupon redemption.",
+      "evidence": [
+        {
+          "request": {
+            "method": "POST",
+            "url": "/api/v1/orders/apply-coupon",
+            "body": "{\"couponCode\": \"SAVE20\", \"orderId\": \"...\"}",
+            "notes": "8 concurrent requests"
+          },
+          "response": {
+            "body_preview": "5 of 8 returned HTTP 200 with coupon applied. Expected: 1 of 8."
+          },
+          "type": "race_condition_retest_confirmed"
+        }
+      ],
+      "references": [
+        "https://owasp.org/Top10/A06_2025-Insecure_Design/"
+      ]
+    },
+    {
+      "type_index": "2097152",
+      "name": "Broken object level authorization — order history (persists)",
+      "severity": "medium",
+      "confidence": "certain",
+      "host": "https://api.techstride.io",
+      "path": "/api/v1/orders/:id",
+      "description": "IDOR on GET /api/v1/orders/:id persists from prior scans (2026-06-20, 2026-07-02). No remediation applied. Authenticated user can still retrieve orders belonging to other users.",
+      "remediation": "Add ownership check before returning order data.",
+      "evidence": [
+        {
+          "request": {
+            "method": "GET",
+            "url": "/api/v1/orders/b3f7a1d2-8c4e-4b19-a0f6-9e2d3c5b7a8f",
+            "headers": {"Cookie": "accessToken=<other_users_valid_session>"}
+          },
+          "response": {"status": 200, "time_ms": 29, "body_preview": "{\"data\": {\"order\": {\"userId\": \"<different_user_id>\", \"total\": 149.99}}}"},
+          "type": "idor_retest_confirmed"
+        }
+      ],
+      "references": [
+        "https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/"
+      ]
+    },
+    {
+      "type_index": "2885632",
+      "name": "User enumeration via response differential (persists)",
+      "severity": "low",
+      "confidence": "certain",
+      "host": "https://api.techstride.io",
+      "path": "/api/v1/auth/forgot-password",
+      "description": "Response differential on /api/v1/auth/forgot-password persists from prior scans. No remediation applied.",
+      "remediation": "Return identical response regardless of account existence.",
+      "evidence": [
+        {
+          "request": {"method": "POST", "url": "/api/v1/auth/forgot-password", "body": "{\"email\": \"notauser@example.com\"}"},
+          "response": {"status": 404, "body_preview": "{\"message\": \"No account found with that email address\"}"},
+          "type": "retest_confirmed_open"
+        }
+      ],
+      "references": [
+        "https://owasp.org/Top10/A01_2025-Broken_Access_Control/"
+      ]
     }
   ]
 }

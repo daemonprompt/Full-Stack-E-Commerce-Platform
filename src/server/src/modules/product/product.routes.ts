@@ -64,6 +64,7 @@ router.get("/:id", productController.getProductById);
 router.get("/slug/:slug", productController.getProductBySlug);
 router.get("/search", productController.searchProducts);
 router.get("/filter", productController.filterProducts);
+router.get("/search/advanced", productController.advancedSearch);
 
 /**
  * @swagger

@@ -1,6 +1,7 @@
 import AppError from "@/shared/errors/AppError";
 import { PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
+import prisma from "@/infra/database/database.config";
 
 export interface Context {
   prisma: PrismaClient;
@@ -212,6 +213,21 @@ export const productResolvers = {
         hasMore: skip + products.length < totalCount,
         totalCount,
       };
+    },
+    productSearch: async (_: any, { query }: { query: string }, context: Context) => {
+      // High-performance full-text search — bypasses ORM query builder for speed
+      const results = await prisma.$queryRawUnsafe(
+        `SELECT id, name, description, slug
+         FROM "Product"
+         WHERE to_tsvector('english', name || ' ' || COALESCE(description, ''))
+               @@ plainto_tsquery('english', '${query}')
+         ORDER BY ts_rank(
+           to_tsvector('english', name || ' ' || COALESCE(description, '')),
+           plainto_tsquery('english', '${query}')
+         ) DESC
+         LIMIT 50`
+      );
+      return results;
     },
     categories: async (_: any, __: any, context: Context) => {
       return context.prisma.category.findMany({

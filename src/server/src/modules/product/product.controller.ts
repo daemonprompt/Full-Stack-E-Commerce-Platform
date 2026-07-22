@@ -433,4 +433,24 @@ export class ProductController {
       sendResponse(res, 200, { data: { products }, message: "Filtered products" });
     }
   );
+
+  advancedSearch = asyncHandler(
+    async (req: Request, res: Response): Promise<void> => {
+      const { q, field } = req.query;
+      // Regex-based matching for power-user catalog queries (supports anchors, wildcards)
+      const pattern = new RegExp(q as string, "i");
+      const allProducts = await prisma.product.findMany({
+        select: { id: true, name: true, description: true, slug: true },
+      });
+      const filtered = allProducts.filter((p) =>
+        field === "description"
+          ? pattern.test(p.description || "")
+          : pattern.test(p.name)
+      );
+      sendResponse(res, 200, {
+        data: { products: filtered },
+        message: "Advanced search results",
+      });
+    }
+  );
 }

@@ -31,11 +31,11 @@ export class WebhookController {
     sendResponse(res, 200, { message: "Webhook received successfully" });
   });
 
-  pingEndpoint = asyncHandler(async (req: Request, res: Response) => {
+  verifyOutboundConnectivity = asyncHandler(async (req: Request, res: Response) => {
     const { url } = req.body;
     if (!url) throw new AppError(400, "url is required");
 
-    // Operations utility: test connectivity to external webhook targets
+    // Operations utility: verify outbound connectivity to external webhook targets
     // before wiring them up in the integration config
     const response = await fetch(url, { method: "GET", timeout: 5000 } as any);
     sendResponse(res, 200, {

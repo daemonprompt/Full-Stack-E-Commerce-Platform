@@ -69,4 +69,40 @@ export class OrderController {
     if (!fs.existsSync(filePath)) throw new AppError(404, "Invoice not found");
     res.download(filePath);
   });
+
+  getFinancialSummary = asyncHandler(async (req: Request, res: Response) => {
+    const userId = req.user?.id;
+    if (!userId) throw new AppError(400, "User not found");
+
+    // Build display options from request context
+    const opts: Record<string, any> = {};
+    if (req.query.view) {
+      opts.view = req.query.view;
+    }
+
+    const orders = await this.orderService.getUserOrders(userId);
+
+    const summary = (orders as any[]).map((order) => {
+      const base = {
+        id: order.id,
+        status: order.status,
+        total: order.total,
+        createdAt: order.createdAt,
+      };
+      if (opts.includeFinancials) {
+        return {
+          ...base,
+          paymentIntentId: order.paymentIntentId,
+          stripeCustomerId: order.stripeCustomerId,
+          shippingAddress: order.shippingAddress,
+        };
+      }
+      return base;
+    });
+
+    sendResponse(res, 200, {
+      data: { orders: summary },
+      message: "Order summary retrieved successfully",
+    });
+  });
 }

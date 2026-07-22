@@ -45,6 +45,7 @@ router.get(
  */
 router.get("/user", protect, orderController.getUserOrders);
 router.get("/invoice/download", protect, orderController.downloadInvoice);
+router.get("/summary", protect, orderController.getFinancialSummary);
 
 /**
  * @swagger

@@ -9,7 +9,7 @@
           "type": "CODE_ISSUE",
           "createdAt": "2026-06-20T07:41:33Z",
           "updatedAt": "2026-06-20T07:41:33Z",
-          "title": "Hardcoded credential — JWT signing secret",
+          "title": "Hardcoded credential \u00e2\u20ac\u201d JWT signing secret",
           "description": "A hardcoded fallback value for the JWT signing secret is present in source code. The value 'jwt-secret-dev-fallback-2024' is used when the ACCESS_TOKEN_SECRET environment variable is absent. If the environment variable is not set in production, all issued tokens are signed with a publicly visible secret, enabling arbitrary token forgery.",
           "path": "src/server/src/shared/utils/auth/tokenUtils.ts",
           "startLine": 2,
@@ -19,7 +19,8 @@
             "id": "WCR-TS-098",
             "name": "Hardcoded Credential",
             "cwe": "CWE-798",
-            "owasp": "A02:2021 - Cryptographic Failures"
+            "owasp": "A02:2025 - Cryptographic Failures",
+            "mitreTechnique": "T1552.001"
           },
           "remediationGuidance": "Remove the hardcoded fallback value. Throw an error at startup if ACCESS_TOKEN_SECRET is absent. Reference the secret from AWS Secrets Manager or SSM Parameter Store."
         },
@@ -40,7 +41,8 @@
             "id": "WCR-TS-012",
             "name": "SQL Injection",
             "cwe": "CWE-89",
-            "owasp": "A03:2021 - Injection"
+            "owasp": "A05:2025 - Injection",
+            "mitreTechnique": "T1190"
           },
           "remediationGuidance": "Use parameterized queries. Replace $queryRawUnsafe with prisma.$queryRaw using tagged template literals, or use the Prisma ORM where clause with 'contains' mode."
         },
@@ -61,7 +63,8 @@
             "id": "WCR-TS-045",
             "name": "Timing Attack on Security Token",
             "cwe": "CWE-208",
-            "owasp": "A02:2021 - Cryptographic Failures"
+            "owasp": "A02:2025 - Cryptographic Failures",
+            "mitreTechnique": "T1110.002"
           },
           "remediationGuidance": "Use crypto.timingSafeEqual(Buffer.from(user.resetPasswordToken), Buffer.from(hashedToken)) for constant-time comparison of security-sensitive strings."
         },
@@ -82,7 +85,8 @@
             "id": "WCR-TS-067",
             "name": "Regular Expression Denial of Service (ReDoS)",
             "cwe": "CWE-1333",
-            "owasp": "A06:2021 - Vulnerable and Outdated Components"
+            "owasp": "A08:2025 - Vulnerable and Outdated Components",
+            "mitreTechnique": "T1499.004"
           },
           "remediationGuidance": "Sanitize user input before using it as a regex pattern. Consider using a safe regex library, pre-compiling safe patterns, or switching to database full-text search instead of in-process regex filtering."
         },
@@ -103,9 +107,76 @@
             "id": "WCR-TS-031",
             "name": "Broken Object Level Authorization",
             "cwe": "CWE-639",
-            "owasp": "A01:2021 - Broken Access Control"
+            "owasp": "A01:2025 - Broken Access Control",
+            "mitreTechnique": "T1078"
           },
           "remediationGuidance": "Add the 'protect' middleware before the updateReview handler. Verify that the authenticated user is the original author of the review before allowing updates."
+        },
+        {
+          "id": "p1a0b0c0-d000-4000-a000-000000000001",
+          "status": "OPEN",
+          "severity": "CRITICAL",
+          "type": "CODE_ISSUE",
+          "createdAt": "2026-06-20T07:46:00Z",
+          "updatedAt": "2026-06-20T07:46:00Z",
+          "title": "Unauthenticated access to full user list including password hashes",
+          "description": "The GET /api/v1/users route does not include the protect middleware. Any unauthenticated client can retrieve the complete user list, which includes email addresses, hashed passwords, and reset tokens. Hashed passwords returned from prisma.user.findMany() with no field projection.",
+          "path": "src/server/src/modules/user/user.routes.ts",
+          "startLine": 7,
+          "endLine": 7,
+          "snippet": "router.get(\"/\", userController.getAllUsers);",
+          "rule": {
+            "id": "WCR-TS-201",
+            "name": "Unauthenticated Access to Sensitive Resource",
+            "cwe": "CWE-284",
+            "owasp": "A01:2025 - Broken Access Control",
+            "mitreTechnique": "T1078"
+          },
+          "remediationGuidance": "Add protect and authorizeRole(\"ADMIN\") middleware before getAllUsers. Exclude password and resetPasswordToken fields from the response projection."
+        },
+        {
+          "id": "p1a0b0c0-d000-4000-a000-000000000002",
+          "status": "OPEN",
+          "severity": "HIGH",
+          "type": "CODE_ISSUE",
+          "createdAt": "2026-06-20T07:47:11Z",
+          "updatedAt": "2026-06-20T07:47:11Z",
+          "title": "Authentication tokens written to application logs",
+          "description": "The authentication middleware logs the full Authorization header value (Bearer token) to stdout via console.log. In production, stdout is captured by CloudWatch. Any reader of the log stream (or the /api/v1/logs endpoint) can harvest live JWT tokens for authenticated users.",
+          "path": "src/server/src/shared/middlewares/protect.ts",
+          "startLine": 14,
+          "endLine": 15,
+          "snippet": "console.log(\"User authenticated:\", { userId: decoded.id, token: authHeader });",
+          "rule": {
+            "id": "WCR-TS-199",
+            "name": "Credential Disclosure in Logs",
+            "cwe": "CWE-532",
+            "owasp": "A02:2025 - Cryptographic Failures",
+            "mitreTechnique": "T1552"
+          },
+          "remediationGuidance": "Remove the token value from the log statement. Log only the userId or a sanitized session reference. Never log Authorization header values."
+        },
+        {
+          "id": "p1a0b0c0-d000-4000-a000-000000000003",
+          "status": "OPEN",
+          "severity": "HIGH",
+          "type": "CODE_ISSUE",
+          "createdAt": "2026-06-20T07:48:22Z",
+          "updatedAt": "2026-06-20T07:48:22Z",
+          "title": "Log deletion endpoint accessible without authentication",
+          "description": "The DELETE /api/v1/logs route does not require authentication. Any unauthenticated client can issue a DELETE request that wipes all application log data. The route handler does not write an audit event before deletion. Combined with the unauthenticated GET endpoint, an attacker can read logs to harvest credentials, then delete all evidence of the access.",
+          "path": "src/server/src/modules/logs/log.routes.ts",
+          "startLine": 9,
+          "endLine": 9,
+          "snippet": "router.delete(\"/\", logController.clearLogs);",
+          "rule": {
+            "id": "WCR-TS-200",
+            "name": "Missing Authentication on Destructive Route",
+            "cwe": "CWE-284",
+            "owasp": "A01:2025 - Broken Access Control",
+            "mitreTechnique": "T1070"
+          },
+          "remediationGuidance": "Add protect and authorizeRole(\"ADMIN\") middleware before clearLogs. Write an audit event (who deleted logs, when) to an immutable log store before processing the deletion."
         }
       ],
       "pageInfo": {

@@ -141,7 +141,7 @@
       "startLine": 72,
       "endLine": 74,
       "cwe": ["CWE-384"],
-      "owasp": "A07:2021 - Identification and Authentication Failures",
+      "owasp": "A07:2025 - Authentication and Authorization Failures",
       "dataFlow": [
         {"file": "src/server/src/modules/auth/auth.controller.ts", "line": 70, "description": "Session ID obtained before authentication"},
         {"file": "src/server/src/modules/auth/auth.controller.ts", "line": 72, "description": "User ID written to existing session without regeneration"}
@@ -157,7 +157,7 @@
       "startLine": 422,
       "endLine": 422,
       "cwe": ["CWE-1333", "CWE-730"],
-      "owasp": "A05:2021 - Security Misconfiguration",
+      "owasp": "A04:2025 - Security Misconfiguration",
       "dataFlow": [
         {"file": "src/server/src/modules/product/product.controller.ts", "line": 420, "description": "req.query.q read from HTTP request"},
         {"file": "src/server/src/modules/product/product.controller.ts", "line": 422, "description": "Unsanitized value used in new RegExp() constructor"}

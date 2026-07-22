@@ -55,7 +55,7 @@
       ],
       "references": [
         "https://portswigger.net/web-security/sql-injection",
-        "https://owasp.org/Top10/A03_2021-Injection/"
+        "https://owasp.org/Top10/A05_2025-Injection/"
       ]
     },
     {
@@ -65,7 +65,7 @@
       "confidence": "certain",
       "host": "https://api.techstride.io",
       "path": "/api/v1/graphql",
-      "description": "SQL injection was confirmed in the 'query' argument of the productSearch GraphQL operation. The endpoint /api/v1/graphql is not subject to WAF SQLi inspection (the WAF configuration excludes this path). Time-delay and UNION-based payloads delivered via GraphQL query variables were successful.",
+      "description": "SQL injection was confirmed in the 'query' argument of the productSearch GraphQL operation. Time-delay and UNION-based payloads delivered via GraphQL query variables were successful. Contrast: identical SQL metacharacter payload sent to /api/v1/products/search returned 403; same payload sent to /api/v1/graphql returned 200. See WAF_CONTRAST evidence entry.",
       "remediation": "Use prisma.$queryRaw with parameterized values. Do not use string interpolation in raw SQL queries.",
       "evidence": [
         {
@@ -81,11 +81,24 @@
             "body_preview": "{\"data\": {\"productSearch\": []}}"
           },
           "type": "time_delay"
+        },
+        {
+          "request": {
+            "method": "GET",
+            "url": "/api/v1/products/search?q=shoes'%20OR%201=1--"
+          },
+          "response": {
+            "status": 403,
+            "time_ms": 3,
+            "body_preview": "{\"message\": \"Request blocked\"}"
+          },
+          "type": "WAF_CONTRAST",
+          "notes": "Identical SQL payload blocked on REST endpoint, not blocked on GraphQL endpoint"
         }
       ],
       "references": [
         "https://portswigger.net/web-security/graphql",
-        "https://owasp.org/Top10/A03_2021-Injection/"
+        "https://owasp.org/Top10/A05_2025-Injection/"
       ]
     },
     {
@@ -108,14 +121,15 @@
           "response": {
             "status": 200,
             "time_ms": 11,
-            "body_preview": "{\"data\": {\"status\": 200, \"ok\": true}, \"message\": \"Endpoint reachable\"}"
+            "body_preview": "{\"data\": {\"status\": 200, \"body\": \"ami-id\\nami-launch-index\\nami-manifest-path\\nhostname\\niam\\ninstance-action\\ninstance-id\\ninstance-life-cycle\\ninstance-type\\nlocal-hostname\\nlocal-ipv4\\nmac\\nmetrics\\nnetwork\\nplacement\\nprofile\\npublic-hostname\\npublic-ipv4\\npublic-keys\\nreservation-id\\nsecurity-groups\\nservices\"}, \"message\": \"Endpoint reachable\"}"
           },
-          "type": "ssrf_confirmed"
+          "type": "ssrf_confirmed",
+          "notes": "Response body contains IMDS directory listing proxied through the application. Sub-15ms response time consistent with same-VPC loopback routing."
         }
       ],
       "references": [
         "https://portswigger.net/web-security/ssrf",
-        "https://owasp.org/Top10/A10_2021-Server-Side_Request_Forgery_%28SSRF%29/"
+        "https://owasp.org/Top10/A10_2025-Server-Side_Request_Forgery_%28SSRF%29/"
       ]
     },
     {
@@ -144,7 +158,7 @@
       ],
       "references": [
         "https://portswigger.net/web-security/file-path-traversal",
-        "https://owasp.org/Top10/A01_2021-Broken_Access_Control/"
+        "https://owasp.org/Top10/A01_2025-Broken_Access_Control/"
       ]
     },
     {
@@ -173,7 +187,7 @@
         }
       ],
       "references": [
-        "https://owasp.org/Top10/A01_2021-Broken_Access_Control/",
+        "https://owasp.org/Top10/A01_2025-Broken_Access_Control/",
         "https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/"
       ]
     }

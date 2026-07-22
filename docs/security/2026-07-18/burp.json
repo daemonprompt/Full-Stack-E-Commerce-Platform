@@ -41,7 +41,7 @@
       "confidence": "certain",
       "host": "https://api.techstride.io",
       "path": "/api/v1/graphql",
-      "description": "SQL injection confirmed in GraphQL productSearch resolver. Time-delay and extraction payloads successful. WAF SQLi rules do not apply to this path.",
+      "description": "SQL injection confirmed in GraphQL productSearch resolver. Time-delay and extraction payloads successful. The endpoint accepted SQL metacharacter payloads without returning 403.",
       "remediation": "Use parameterized queries in GraphQL resolvers.",
       "evidence": [
         {
@@ -116,7 +116,7 @@
           "type": "xss_confirmed"
         }
       ],
-      "references": ["https://owasp.org/Top10/A03_2021-Injection/", "https://portswigger.net/web-security/cross-site-scripting/stored"]
+      "references": ["https://owasp.org/Top10/A05_2025-Injection/", "https://portswigger.net/web-security/cross-site-scripting/stored"]
     },
     {
       "type_index": "2098432",

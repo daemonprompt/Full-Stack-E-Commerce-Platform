@@ -111,13 +111,13 @@
         "response": {
           "status": 200,
           "headers": {"Content-Type": "application/json"},
-          "body": "{\"data\": {\"status\": 200, \"ok\": true}, \"message\": \"Endpoint reachable\"}"
+          "body": "{\"data\": {\"status\": 200, \"body\": \"ami-id\\nami-launch-index\\nami-manifest-path\\nhostname\\niam\\ninstance-action\\ninstance-id\\ninstance-life-cycle\\ninstance-type\\nlocal-hostname\\nlocal-ipv4\\nmac\\nmetrics\\nnetwork\\nplacement\\nprofile\\npublic-hostname\\npublic-ipv4\\npublic-keys\\nreservation-id\\nsecurity-groups\\nservices\"}, \"message\": \"Endpoint reachable\"}"
         },
         "out_of_band": {
           "dns_lookup": false,
           "http_response_received": true,
           "response_time_ms": 12,
-          "notes": "Sub-15ms response time consistent with internal loopback or same-VPC routing"
+          "notes": "Response body contains IMDS directory listing proxied through application response. Sub-15ms response consistent with same-VPC routing. IAM credential path: /latest/meta-data/iam/security-credentials/"
         }
       },
       "first_seen": "2026-07-01T14:22:07Z",

@@ -23,21 +23,28 @@
             "id": "WC-AWS-ElastiCache-007",
             "name": "ElastiCache Redis clusters should require AUTH tokens",
             "description": "Enabling AUTH for Redis prevents unauthenticated access to cached data.",
-            "severity": "HIGH"
+            "severity": "HIGH",
+            "mitreTechnique": "T1190"
           },
           "securitySubCategories": [
             {
               "title": "Ensure ElastiCache for Redis clusters use encryption in transit and at rest",
               "category": {
                 "name": "Data Protection",
-                "framework": {"name": "AWS Foundational Security Best Practices", "shortName": "AWS-FSBP"}
+                "framework": {
+                  "name": "AWS Foundational Security Best Practices",
+                  "shortName": "AWS-FSBP"
+                }
               }
             },
             {
               "title": "6.3 - Ensure all stored data is adequately secured",
               "category": {
                 "name": "Protect Data at Rest",
-                "framework": {"name": "NIST SP 800-53 Rev 5", "shortName": "NIST-800-53"}
+                "framework": {
+                  "name": "NIST SP 800-53 Rev 5",
+                  "shortName": "NIST-800-53"
+                }
               }
             }
           ]
@@ -63,21 +70,28 @@
             "id": "WC-AWS-SG-003",
             "name": "Security groups should not permit unrestricted access to sensitive ports",
             "description": "Unrestricted inbound access to database and cache ports increases the attack surface.",
-            "severity": "HIGH"
+            "severity": "HIGH",
+            "mitreTechnique": "T1190"
           },
           "securitySubCategories": [
             {
               "title": "1.3.1 - Prohibit direct public access to any component in the cardholder data environment",
               "category": {
                 "name": "Network Access Controls",
-                "framework": {"name": "PCI DSS v4.0", "shortName": "PCI-DSS"}
+                "framework": {
+                  "name": "PCI DSS v4.0",
+                  "shortName": "PCI-DSS"
+                }
               }
             },
             {
               "title": "SC-7 - Boundary Protection",
               "category": {
                 "name": "System and Communications Protection",
-                "framework": {"name": "NIST SP 800-53 Rev 5", "shortName": "NIST-800-53"}
+                "framework": {
+                  "name": "NIST SP 800-53 Rev 5",
+                  "shortName": "NIST-800-53"
+                }
               }
             }
           ]
@@ -103,14 +117,18 @@
             "id": "WC-AWS-ECS-004",
             "name": "ECS task definitions should specify a non-root user",
             "description": "Running containers as non-root reduces the blast radius of container compromises.",
-            "severity": "MEDIUM"
+            "severity": "MEDIUM",
+            "mitreTechnique": "T1068"
           },
           "securitySubCategories": [
             {
               "title": "5.2 - Avoid Privilege Escalation",
               "category": {
                 "name": "Container Security",
-                "framework": {"name": "CIS Benchmark for Docker", "shortName": "CIS-Docker"}
+                "framework": {
+                  "name": "CIS Benchmark for Docker",
+                  "shortName": "CIS-Docker"
+                }
               }
             }
           ]
@@ -136,14 +154,18 @@
             "id": "WC-AWS-ECS-008",
             "name": "ECS task definitions should use secrets management for sensitive values",
             "description": "Use secretsFrom or valueFrom referencing Secrets Manager/SSM to avoid exposing secrets in task definitions.",
-            "severity": "MEDIUM"
+            "severity": "MEDIUM",
+            "mitreTechnique": "T1552.001"
           },
           "securitySubCategories": [
             {
               "title": "IA-5 - Authenticator Management",
               "category": {
                 "name": "Identification and Authentication",
-                "framework": {"name": "NIST SP 800-53 Rev 5", "shortName": "NIST-800-53"}
+                "framework": {
+                  "name": "NIST SP 800-53 Rev 5",
+                  "shortName": "NIST-800-53"
+                }
               }
             }
           ]
@@ -169,14 +191,18 @@
             "id": "WC-AWS-SG-005",
             "name": "RDS security groups should restrict inbound access to known CIDRs",
             "description": "Direct public access to database instances should be avoided. Use VPN or bastion host for administrative access.",
-            "severity": "MEDIUM"
+            "severity": "MEDIUM",
+            "mitreTechnique": "T1190"
           },
           "securitySubCategories": [
             {
               "title": "2.2.1 - Develop configuration standards for all system components",
               "category": {
                 "name": "Security Configuration",
-                "framework": {"name": "PCI DSS v4.0", "shortName": "PCI-DSS"}
+                "framework": {
+                  "name": "PCI DSS v4.0",
+                  "shortName": "PCI-DSS"
+                }
               }
             }
           ]
@@ -202,14 +228,18 @@
             "id": "WC-AWS-CW-002",
             "name": "CloudWatch log groups should retain logs for at least 90 days",
             "description": "Log retention should meet compliance requirements and support incident investigation.",
-            "severity": "LOW"
+            "severity": "LOW",
+            "mitreTechnique": "T1070"
           },
           "securitySubCategories": [
             {
               "title": "AU-11 - Audit Record Retention",
               "category": {
                 "name": "Audit and Accountability",
-                "framework": {"name": "NIST SP 800-53 Rev 5", "shortName": "NIST-800-53"}
+                "framework": {
+                  "name": "NIST SP 800-53 Rev 5",
+                  "shortName": "NIST-800-53"
+                }
               }
             }
           ]
@@ -235,14 +265,18 @@
             "id": "WC-AWS-ECS-006",
             "name": "ECS containers should use a read-only root filesystem",
             "description": "A read-only root filesystem prevents malware from writing persistent files after a container is compromised.",
-            "severity": "LOW"
+            "severity": "LOW",
+            "mitreTechnique": "T1068"
           },
           "securitySubCategories": [
             {
               "title": "5.12 - Ensure the container's root filesystem is mounted as read only",
               "category": {
                 "name": "Container Security",
-                "framework": {"name": "CIS Benchmark for Docker", "shortName": "CIS-Docker"}
+                "framework": {
+                  "name": "CIS Benchmark for Docker",
+                  "shortName": "CIS-Docker"
+                }
               }
             }
           ]

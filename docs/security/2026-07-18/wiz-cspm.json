@@ -22,7 +22,8 @@
           "control": {
             "id": "WC-AWS-ElastiCache-007",
             "name": "ElastiCache Redis clusters should require AUTH tokens",
-            "severity": "HIGH"
+            "severity": "HIGH",
+            "mitreTechnique": "T1190"
           },
           "securitySubCategories": []
         },
@@ -46,7 +47,8 @@
           "control": {
             "id": "WC-AWS-SG-003",
             "name": "Security groups should not permit unrestricted access to sensitive ports",
-            "severity": "HIGH"
+            "severity": "HIGH",
+            "mitreTechnique": "T1190"
           },
           "securitySubCategories": []
         },
@@ -70,7 +72,8 @@
           "control": {
             "id": "WC-AWS-ECS-004",
             "name": "ECS task definitions should specify a non-root user",
-            "severity": "MEDIUM"
+            "severity": "MEDIUM",
+            "mitreTechnique": "T1068"
           },
           "securitySubCategories": []
         },
@@ -83,7 +86,7 @@
           "updatedAt": "2026-07-18T08:00:00Z",
           "resolvedAt": null,
           "title": "ECS task IAM role grants overly broad S3 permissions",
-          "description": "IAM role 'ecommerce-task-role' grants s3:* on * — exceeds minimum required permissions.",
+          "description": "IAM role 'ecommerce-task-role' grants s3:* on * \u00e2\u20ac\u201d exceeds minimum required permissions.",
           "entity": {
             "id": "arn:aws:iam::123456789012:role/ecommerce-task-role",
             "name": "ecommerce-task-role",
@@ -107,7 +110,7 @@
           "updatedAt": "2026-07-18T08:00:00Z",
           "resolvedAt": null,
           "title": "Container image contains known high-severity vulnerable dependency (CVE-2022-39353)",
-          "description": "Container image scan of the ECS task definition 'ecommerce-api:9' detected the npm package xmldom@0.1.31 in the container filesystem. This version is affected by CVE-2022-39353 (XXE injection, CVSS 7.5). The package is present both as a direct dependency (added in the latest build) and transitively via passport-twitter → passport-oauth1.",
+          "description": "Container image scan of the ECS task definition 'ecommerce-api:9' detected the npm package xmldom@0.1.31 in the container filesystem. This version is affected by CVE-2022-39353 (XXE injection, CVSS 7.5). The package is present both as a direct dependency (added in the latest build) and transitively via passport-twitter \u00e2\u2020\u2019 passport-oauth1.",
           "entity": {
             "id": "arn:aws:ecs:us-east-1:123456789012:task-definition/ecommerce-api:9",
             "name": "ecommerce-api:9",
@@ -123,10 +126,13 @@
           },
           "securitySubCategories": [
             {
-              "title": "A06:2021 - Vulnerable and Outdated Components",
+              "title": "A08:2025 - Vulnerable and Outdated Components",
               "category": {
                 "name": "Dependency Vulnerability",
-                "framework": {"name": "OWASP Top 10 2021", "shortName": "OWASP-2021"}
+                "framework": {
+                  "name": "OWASP Top 10 2021",
+                  "shortName": "OWASP-2021"
+                }
               }
             }
           ]
@@ -159,10 +165,38 @@
               "title": "IA-5 - Authenticator Management",
               "category": {
                 "name": "Identification and Authentication",
-                "framework": {"name": "NIST SP 800-53 Rev 5", "shortName": "NIST-800-53"}
+                "framework": {
+                  "name": "NIST SP 800-53 Rev 5",
+                  "shortName": "NIST-800-53"
+                }
               }
             }
           ]
+        },
+        {
+          "id": "h9j21m83-0j73-4g77-h5i6-7j4i1k0l8513",
+          "status": "OPEN",
+          "severity": "HIGH",
+          "type": "CLOUD_CONFIGURATION",
+          "createdAt": "2026-07-01T14:00:00Z",
+          "updatedAt": "2026-07-18T08:00:00Z",
+          "resolvedAt": null,
+          "title": "ECS cluster does not enforce IMDSv2 for task metadata requests",
+          "description": "The ECS cluster ecommerce-cluster does not enforce IMDSv2. IMDSv1 requests succeed without a session token from any process within the container.",
+          "entity": {
+            "id": "arn:aws:ecs:us-east-1:123456789012:cluster/ecommerce-cluster",
+            "name": "ecommerce-cluster",
+            "type": "ECS_CLUSTER",
+            "cloudPlatform": "AWS",
+            "region": "us-east-1"
+          },
+          "control": {
+            "id": "WC-AWS-EC2-IMDSv2",
+            "name": "ECS tasks should use IMDSv2 to access instance metadata",
+            "severity": "HIGH",
+            "mitreTechnique": "T1552.005"
+          },
+          "securitySubCategories": []
         }
       ],
       "pageInfo": {

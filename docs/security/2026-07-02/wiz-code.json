@@ -9,7 +9,7 @@
           "type": "CODE_ISSUE",
           "createdAt": "2026-06-20T07:41:33Z",
           "updatedAt": "2026-07-02T08:00:00Z",
-          "title": "Hardcoded credential — JWT signing secret",
+          "title": "Hardcoded credential \u00e2\u20ac\u201d JWT signing secret",
           "description": "A hardcoded fallback value for the JWT signing secret is present in source code. The value 'jwt-secret-dev-fallback-2024' is used when the ACCESS_TOKEN_SECRET environment variable is absent.",
           "path": "src/server/src/shared/utils/auth/tokenUtils.ts",
           "startLine": 2,
@@ -19,7 +19,8 @@
             "id": "WCR-TS-098",
             "name": "Hardcoded Credential",
             "cwe": "CWE-798",
-            "owasp": "A02:2021 - Cryptographic Failures"
+            "owasp": "A02:2025 - Cryptographic Failures",
+            "mitreTechnique": "T1552.001"
           },
           "remediationGuidance": "Remove the hardcoded fallback. Throw at startup if ACCESS_TOKEN_SECRET is absent. Reference from Secrets Manager."
         },
@@ -40,7 +41,8 @@
             "id": "WCR-TS-012",
             "name": "SQL Injection",
             "cwe": "CWE-89",
-            "owasp": "A03:2021 - Injection"
+            "owasp": "A05:2025 - Injection",
+            "mitreTechnique": "T1190"
           },
           "remediationGuidance": "Use prisma.$queryRaw with tagged template literals or Prisma ORM parameterized queries."
         },
@@ -61,7 +63,8 @@
             "id": "WCR-TS-045",
             "name": "Timing Attack on Security Token",
             "cwe": "CWE-208",
-            "owasp": "A02:2021 - Cryptographic Failures"
+            "owasp": "A02:2025 - Cryptographic Failures",
+            "mitreTechnique": "T1110.002"
           },
           "remediationGuidance": "Use crypto.timingSafeEqual() for constant-time comparison."
         },
@@ -82,7 +85,8 @@
             "id": "WCR-TS-067",
             "name": "Regular Expression Denial of Service (ReDoS)",
             "cwe": "CWE-1333",
-            "owasp": "A06:2021 - Vulnerable and Outdated Components"
+            "owasp": "A08:2025 - Vulnerable and Outdated Components",
+            "mitreTechnique": "T1499.004"
           },
           "remediationGuidance": "Sanitize input before using in RegExp or switch to database full-text search."
         },
@@ -103,7 +107,8 @@
             "id": "WCR-TS-031",
             "name": "Broken Object Level Authorization",
             "cwe": "CWE-639",
-            "owasp": "A01:2021 - Broken Access Control"
+            "owasp": "A01:2025 - Broken Access Control",
+            "mitreTechnique": "T1078"
           },
           "remediationGuidance": "Add protect middleware and verify the authenticated user is the review author."
         },
@@ -124,7 +129,8 @@
             "id": "WCR-TS-022",
             "name": "Path Traversal",
             "cwe": "CWE-22",
-            "owasp": "A01:2021 - Broken Access Control"
+            "owasp": "A01:2025 - Broken Access Control",
+            "mitreTechnique": "T1083"
           },
           "remediationGuidance": "Validate that the resolved file path starts with the expected base directory. Use path.resolve() and check against the invoicesDir prefix before serving."
         },
@@ -135,7 +141,7 @@
           "type": "CODE_ISSUE",
           "createdAt": "2026-07-01T09:12:58Z",
           "updatedAt": "2026-07-02T08:00:00Z",
-          "title": "Server-side request forgery — unvalidated URL in HTTP client",
+          "title": "Server-side request forgery \u00e2\u20ac\u201d unvalidated URL in HTTP client",
           "description": "The verifyOutboundConnectivity handler accepts a URL from the request body and passes it directly to fetch() without validation. An attacker can supply internal addresses (169.254.169.254, VPC-internal endpoints, Redis) to probe the internal network from the server's perspective.",
           "path": "src/server/src/modules/webhook/webhook.controller.ts",
           "startLine": 34,
@@ -145,7 +151,8 @@
             "id": "WCR-TS-055",
             "name": "Server-Side Request Forgery (SSRF)",
             "cwe": "CWE-918",
-            "owasp": "A10:2021 - Server-Side Request Forgery"
+            "owasp": "A10:2025 - Server-Side Request Forgery",
+            "mitreTechnique": "T1190"
           },
           "remediationGuidance": "Validate the supplied URL against an allowlist of permitted external domains. Block private IP ranges and internal hostnames. Consider using a dedicated HTTP proxy with egress controls."
         },
@@ -166,7 +173,8 @@
             "id": "WCR-TS-089",
             "name": "Prototype Pollution",
             "cwe": "CWE-1321",
-            "owasp": "A08:2021 - Software and Data Integrity Failures"
+            "owasp": "A06:2025 - Insecure Design",
+            "mitreTechnique": "T1565"
           },
           "remediationGuidance": "Validate field names against an allowlist of expected property names. Use Object.create(null) for accumulator objects to avoid prototype chain inheritance."
         },
@@ -187,9 +195,76 @@
             "id": "WCR-TS-012",
             "name": "SQL Injection",
             "cwe": "CWE-89",
-            "owasp": "A03:2021 - Injection"
+            "owasp": "A05:2025 - Injection",
+            "mitreTechnique": "T1190"
           },
           "remediationGuidance": "Use parameterized queries. Replace with prisma.$queryRaw tagged template literals."
+        },
+        {
+          "id": "p1a0b0c0-d000-4000-a000-000000000001",
+          "status": "OPEN",
+          "severity": "CRITICAL",
+          "type": "CODE_ISSUE",
+          "createdAt": "2026-06-20T07:46:00Z",
+          "updatedAt": "2026-07-18T08:00:00Z",
+          "title": "Unauthenticated access to full user list including password hashes",
+          "description": "The GET /api/v1/users route does not include the protect middleware. Any unauthenticated client can retrieve the complete user list including email addresses, hashed passwords, and reset tokens.",
+          "path": "src/server/src/modules/user/user.routes.ts",
+          "startLine": 7,
+          "endLine": 7,
+          "snippet": "router.get(\"/\", userController.getAllUsers);",
+          "rule": {
+            "id": "WCR-TS-201",
+            "name": "Unauthenticated Access to Sensitive Resource",
+            "cwe": "CWE-284",
+            "owasp": "A01:2025 - Broken Access Control",
+            "mitreTechnique": "T1078"
+          },
+          "remediationGuidance": "Add protect and authorizeRole middleware. Exclude sensitive fields from the response projection."
+        },
+        {
+          "id": "p1a0b0c0-d000-4000-a000-000000000002",
+          "status": "OPEN",
+          "severity": "HIGH",
+          "type": "CODE_ISSUE",
+          "createdAt": "2026-06-20T07:47:11Z",
+          "updatedAt": "2026-07-18T08:00:00Z",
+          "title": "Authentication tokens written to application logs",
+          "description": "The authentication middleware logs the full Authorization header value (Bearer token) to stdout. Any reader of the log stream can harvest live JWT tokens.",
+          "path": "src/server/src/shared/middlewares/protect.ts",
+          "startLine": 14,
+          "endLine": 15,
+          "snippet": "console.log(\"User authenticated:\", { userId: decoded.id, token: authHeader });",
+          "rule": {
+            "id": "WCR-TS-199",
+            "name": "Credential Disclosure in Logs",
+            "cwe": "CWE-532",
+            "owasp": "A02:2025 - Cryptographic Failures",
+            "mitreTechnique": "T1552"
+          },
+          "remediationGuidance": "Remove token value from log statement. Never log Authorization header values."
+        },
+        {
+          "id": "p1a0b0c0-d000-4000-a000-000000000003",
+          "status": "OPEN",
+          "severity": "HIGH",
+          "type": "CODE_ISSUE",
+          "createdAt": "2026-06-20T07:48:22Z",
+          "updatedAt": "2026-07-18T08:00:00Z",
+          "title": "Log deletion endpoint accessible without authentication",
+          "description": "The DELETE /api/v1/logs route does not require authentication. Any unauthenticated client can issue a DELETE request wiping all application log data. No audit event is written before deletion.",
+          "path": "src/server/src/modules/logs/log.routes.ts",
+          "startLine": 9,
+          "endLine": 9,
+          "snippet": "router.delete(\"/\", logController.clearLogs);",
+          "rule": {
+            "id": "WCR-TS-200",
+            "name": "Missing Authentication on Destructive Route",
+            "cwe": "CWE-284",
+            "owasp": "A01:2025 - Broken Access Control",
+            "mitreTechnique": "T1070"
+          },
+          "remediationGuidance": "Add protect and authorizeRole middleware. Write audit event before processing deletion."
         }
       ],
       "pageInfo": {

@@ -1,0 +1,133 @@
+{
+  "version": "1.0.0",
+  "scan": {
+    "id": "semgrep-scan-2026-07-22-h3i9j0k1",
+    "timestamp": "2026-07-22T03:15:00Z",
+    "branch": "main",
+    "commit": "e0611a5d",
+    "rules_used": ["p/ci", "p/supply-chain", "p/secrets"],
+    "files_scanned": 312
+  },
+  "results": [
+    {
+      "check_id": "semgrep.supply-chain.unpinned-github-action",
+      "path": ".github/workflows/ci.yml",
+      "start": {"line": 15, "col": 9},
+      "end": {"line": 15, "col": 39},
+      "extra": {
+        "message": "GitHub Action 'actions/checkout@v3' is not pinned to a full-length commit SHA. A mutable tag reference allows the upstream repository owner or a supply chain attacker to silently replace the action's content. The action runs in the CI context and can read all environment variables injected by the workflow, including secrets.",
+        "severity": "ERROR",
+        "metadata": {
+          "cwe": ["CWE-494: Download of Code Without Integrity Check"],
+          "owasp": ["A03:2025 - Supply Chain Failures"],
+          "references": [
+            "https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#using-third-party-actions",
+            "https://securitylab.github.com/research/github-actions-untrusted-input/"
+          ],
+          "fix": "Pin to commit SHA: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683"
+        }
+      }
+    },
+    {
+      "check_id": "semgrep.supply-chain.unpinned-github-action",
+      "path": ".github/workflows/ci.yml",
+      "start": {"line": 16, "col": 9},
+      "end": {"line": 16, "col": 38},
+      "extra": {
+        "message": "GitHub Action 'actions/setup-node@v3' is not pinned to a full-length commit SHA. Mutable tag reference.",
+        "severity": "ERROR",
+        "metadata": {
+          "cwe": ["CWE-494: Download of Code Without Integrity Check"],
+          "owasp": ["A03:2025 - Supply Chain Failures"],
+          "fix": "Pin to commit SHA: actions/setup-node@49933ea5288caeca8642d1e84afbf2929b88383e"
+        }
+      }
+    },
+    {
+      "check_id": "semgrep.supply-chain.unpinned-github-action",
+      "path": ".github/workflows/ci.yml",
+      "start": {"line": 44, "col": 9},
+      "end": {"line": 44, "col": 55},
+      "extra": {
+        "message": "Third-party GitHub Action 'aws-actions/configure-aws-credentials@v2' is not pinned to a full-length commit SHA. This action is maintained by a third party (AWS). A compromised or typosquatted version of this action would execute in the CI context with access to AWS credentials stored as repository secrets.",
+        "severity": "ERROR",
+        "metadata": {
+          "cwe": ["CWE-494: Download of Code Without Integrity Check"],
+          "owasp": ["A03:2025 - Supply Chain Failures"],
+          "references": [
+            "https://blog.paloaltonetworks.com/2023/01/github-actions-supply-chain-attacks/"
+          ],
+          "fix": "Pin to commit SHA: aws-actions/configure-aws-credentials@010d0da01d0b5a38af31e9c3470dbfdabdecca3a"
+        }
+      }
+    },
+    {
+      "check_id": "semgrep.supply-chain.unpinned-github-action",
+      "path": ".github/workflows/deploy.yml",
+      "start": {"line": 9, "col": 9},
+      "end": {"line": 9, "col": 39},
+      "extra": {
+        "message": "GitHub Action 'actions/checkout@v3' is not pinned to a full-length commit SHA.",
+        "severity": "ERROR",
+        "metadata": {
+          "cwe": ["CWE-494: Download of Code Without Integrity Check"],
+          "owasp": ["A03:2025 - Supply Chain Failures"]
+        }
+      }
+    },
+    {
+      "check_id": "semgrep.supply-chain.unpinned-github-action",
+      "path": ".github/workflows/deploy.yml",
+      "start": {"line": 13, "col": 9},
+      "end": {"line": 13, "col": 55},
+      "extra": {
+        "message": "Third-party GitHub Action 'aws-actions/configure-aws-credentials@v2' is not pinned to a full-length commit SHA.",
+        "severity": "ERROR",
+        "metadata": {
+          "cwe": ["CWE-494: Download of Code Without Integrity Check"],
+          "owasp": ["A03:2025 - Supply Chain Failures"]
+        }
+      }
+    },
+    {
+      "check_id": "semgrep.supply-chain.unpinned-github-action",
+      "path": ".github/workflows/deploy.yml",
+      "start": {"line": 17, "col": 9},
+      "end": {"line": 17, "col": 47},
+      "extra": {
+        "message": "Third-party GitHub Action 'aws-actions/amazon-ecr-login@v1' is not pinned to a full-length commit SHA.",
+        "severity": "ERROR",
+        "metadata": {
+          "cwe": ["CWE-494: Download of Code Without Integrity Check"],
+          "owasp": ["A03:2025 - Supply Chain Failures"]
+        }
+      }
+    },
+    {
+      "check_id": "semgrep.secrets.hardcoded-credential-in-iac",
+      "path": "docs/infrastructure/ecs-task.tf",
+      "start": {"line": 39, "col": 1},
+      "end": {"line": 42, "col": 10},
+      "extra": {
+        "message": "Hardcoded credential value 'jwt-secret-dev-fallback-2024' found in Terraform container environment definition. This value will be injected as a plaintext environment variable into the ECS task container at runtime. Any process with access to the container environment — including code executing in a CI/CD context that reads the task definition — can retrieve this value.",
+        "severity": "ERROR",
+        "metadata": {
+          "cwe": ["CWE-798: Use of Hardcoded Credentials"],
+          "owasp": ["A02:2025 - Cryptographic Failures"],
+          "references": [
+            "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition"
+          ],
+          "fix": "Reference a Secrets Manager ARN or SSM Parameter Store path in the secrets block rather than the environment block."
+        }
+      }
+    }
+  ],
+  "stats": {
+    "total_findings": 7,
+    "by_severity": {
+      "ERROR": 7,
+      "WARNING": 0,
+      "INFO": 0
+    }
+  }
+}

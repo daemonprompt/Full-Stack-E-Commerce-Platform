@@ -1,0 +1,90 @@
+{
+  "meta": {
+    "isPrivate": true,
+    "isLicensesEnabled": false,
+    "policy": "",
+    "ignoreSettings": null,
+    "org": "techstride-commerce",
+    "projectName": "techstride/full-stack-ecommerce",
+    "scanDate": "2026-07-22T05:00:00Z",
+    "branch": "main"
+  },
+  "vulnerabilities": [
+    {
+      "id": "SNYK-JS-JSONWEBTOKEN-3180482",
+      "pkgName": "jsonwebtoken",
+      "pkgVersion": "8.5.1",
+      "fixedIn": ["9.0.0"],
+      "severity": "high",
+      "cvssScore": 7.6,
+      "CVSSv3": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:L/A:N",
+      "cve": "CVE-2022-23529",
+      "cwe": ["CWE-20"],
+      "title": "Remote Code Execution (RCE)",
+      "description": "Affected versions of jsonwebtoken are vulnerable to ReDoS when parsing specially crafted JWTs. Additionally, the library does not validate algorithm type, meaning tokens signed with an asymmetric private key can be verified with a public key by downgrading the algorithm. If the application accepts externally supplied signing keys, an attacker can forge a valid token.",
+      "from": ["techstride-api@1.0.0", "jsonwebtoken@8.5.1"],
+      "upgradePath": ["false", "jsonwebtoken@9.0.0"],
+      "isUpgradable": true,
+      "isPatchable": false,
+      "identifiers": {
+        "CVE": ["CVE-2022-23529"],
+        "CWE": ["CWE-20"]
+      },
+      "references": [
+        {"url": "https://snyk.io/vuln/SNYK-JS-JSONWEBTOKEN-3180482", "title": "Snyk Advisory"},
+        {"url": "https://github.com/auth0/node-jsonwebtoken/releases/tag/v9.0.0", "title": "Patch Release"}
+      ]
+    },
+    {
+      "id": "SNYK-JS-AXIOS-7361793",
+      "pkgName": "axios",
+      "pkgVersion": "0.27.2",
+      "fixedIn": ["1.7.4"],
+      "severity": "medium",
+      "cvssScore": 6.5,
+      "CVSSv3": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:N/A:N",
+      "cve": "CVE-2024-39338",
+      "cwe": ["CWE-918"],
+      "title": "Server-Side Request Forgery (SSRF)",
+      "description": "axios versions before 1.7.4 are vulnerable to SSRF. The library follows redirects without checking whether the redirected URL targets internal/private addresses. An attacker who can influence the URL passed to axios can redirect requests to internal metadata endpoints or private network services.",
+      "from": ["techstride-api@1.0.0", "axios@0.27.2"],
+      "upgradePath": ["false", "axios@1.7.4"],
+      "isUpgradable": true,
+      "isPatchable": false,
+      "identifiers": {
+        "CVE": ["CVE-2024-39338"],
+        "CWE": ["CWE-918"]
+      },
+      "references": [
+        {"url": "https://snyk.io/vuln/SNYK-JS-AXIOS-7361793", "title": "Snyk Advisory"}
+      ]
+    },
+    {
+      "id": "SNYK-ACTIONS-CHECKOUT-001",
+      "pkgName": "actions/checkout",
+      "pkgVersion": "v3",
+      "fixedIn": null,
+      "severity": "medium",
+      "cvssScore": 6.1,
+      "title": "GitHub Action pinned to mutable tag — supply chain exposure",
+      "description": "The workflow .github/workflows/ci.yml references 'actions/checkout@v3' using a mutable tag. Snyk IaC detected that this action is not pinned to a commit SHA. Mutable tags can be updated to point to different (potentially malicious) commits without changing the workflow file. This finding is informational relative to the version tag but HIGH in context: the checkout action runs before credential configuration and provides workspace access to all subsequent steps.",
+      "from": [".github/workflows/ci.yml"],
+      "isUpgradable": false,
+      "isPatchable": false,
+      "identifiers": {
+        "CWE": ["CWE-494"]
+      },
+      "references": [
+        {"url": "https://docs.snyk.io/scan-using-snyk/snyk-iac/getting-started-with-iac+", "title": "Snyk IaC for GitHub Actions"},
+        {"url": "https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions", "title": "GitHub Security Hardening"}
+      ]
+    }
+  ],
+  "dependencyCount": 487,
+  "packageManager": "npm",
+  "summary": {
+    "high": 1,
+    "medium": 2,
+    "low": 0
+  }
+}

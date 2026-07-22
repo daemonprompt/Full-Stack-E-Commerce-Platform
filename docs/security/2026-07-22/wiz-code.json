@@ -1,0 +1,78 @@
+{
+  "data": {
+    "codeFindings": {
+      "nodes": [
+        {
+          "id": "sc01a000-b000-4000-c000-000000000001",
+          "status": "OPEN",
+          "severity": "CRITICAL",
+          "type": "CODE_ISSUE",
+          "createdAt": "2026-07-22T04:30:00Z",
+          "updatedAt": "2026-07-22T04:30:00Z",
+          "title": "Hardcoded JWT signing secret in Terraform ECS task definition",
+          "description": "The ECS task definition in docs/infrastructure/ecs-task.tf injects the value 'jwt-secret-dev-fallback-2024' as a plaintext environment variable (ACCESS_TOKEN_FALLBACK) into the production container. This value matches the hardcoded fallback in src/server/src/shared/utils/auth/tokenUtils.ts. If any process with access to the container environment or the CI pipeline that deploys this task definition reads this variable, it can forge arbitrary JWT tokens for any user in the system without authentication.",
+          "path": "docs/infrastructure/ecs-task.tf",
+          "startLine": 39,
+          "endLine": 42,
+          "snippet": "{\n  name  = \"ACCESS_TOKEN_FALLBACK\"\n  value = \"jwt-secret-dev-fallback-2024\"\n}",
+          "rule": {
+            "id": "WCR-TF-041",
+            "name": "Hardcoded Secret in IaC Container Definition",
+            "cwe": "CWE-798",
+            "owasp": "A02:2025 - Cryptographic Failures",
+            "mitreTechnique": "T1552.001"
+          },
+          "remediationGuidance": "Move the secret to AWS Secrets Manager or SSM Parameter Store. Reference via the 'secrets' block in the container definition (not 'environment'). Remove the hardcoded value from source control and rotate the secret immediately."
+        },
+        {
+          "id": "sc01a000-b000-4000-c000-000000000002",
+          "status": "OPEN",
+          "severity": "HIGH",
+          "type": "CODE_ISSUE",
+          "createdAt": "2026-07-22T04:31:00Z",
+          "updatedAt": "2026-07-22T04:31:00Z",
+          "title": "CI workflow uses mutable third-party action tag without SHA pin",
+          "description": "The deploy-staging job in .github/workflows/ci.yml uses 'aws-actions/configure-aws-credentials@v2' — a mutable tag reference to a third-party action maintained by AWS. If the upstream repository is compromised or the tag is moved to point to malicious code, the CI runner will execute the replacement action in the workflow context. The workflow runs on pull_request events and has access to AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY repository secrets. Additionally, the workflow checks out the full repository including docs/infrastructure/ecs-task.tf, making ACCESS_TOKEN_FALLBACK readable by any step after checkout.",
+          "path": ".github/workflows/ci.yml",
+          "startLine": 44,
+          "endLine": 44,
+          "snippet": "- uses: aws-actions/configure-aws-credentials@v2",
+          "rule": {
+            "id": "WCR-CICD-007",
+            "name": "Unpinned Third-Party CI Action",
+            "cwe": "CWE-494",
+            "owasp": "A03:2025 - Supply Chain Failures",
+            "mitreTechnique": "T1195.001"
+          },
+          "remediationGuidance": "Pin all action references to a full-length commit SHA. Enable Dependabot for GitHub Actions to receive update PRs. Audit third-party actions before use."
+        },
+        {
+          "id": "sc01a000-b000-4000-c000-000000000003",
+          "status": "OPEN",
+          "severity": "HIGH",
+          "type": "CODE_ISSUE",
+          "createdAt": "2026-07-22T04:32:00Z",
+          "updatedAt": "2026-07-22T04:32:00Z",
+          "title": "CI workflow checks out repository before running untrusted third-party action",
+          "description": "The ci.yml workflow places 'actions/checkout@v3' before 'aws-actions/configure-aws-credentials@v2'. Any malicious code injected into the configure-aws-credentials action (via tag movement) executes after the repository is fully checked out. The checked-out working directory includes docs/infrastructure/ecs-task.tf, which contains the plaintext ACCESS_TOKEN_FALLBACK value. A compromised action can read this file and exfiltrate the JWT signing secret without requiring access to GitHub secrets.",
+          "path": ".github/workflows/ci.yml",
+          "startLine": 40,
+          "endLine": 47,
+          "snippet": "steps:\n  - uses: actions/checkout@v3\n  ...\n  - uses: aws-actions/configure-aws-credentials@v2",
+          "rule": {
+            "id": "WCR-CICD-009",
+            "name": "Secret Exposed to Untrusted Action via Checkout",
+            "cwe": "CWE-312",
+            "owasp": "A03:2025 - Supply Chain Failures",
+            "mitreTechnique": "T1552.004"
+          },
+          "remediationGuidance": "Audit the contents of the checked-out repository for plaintext secrets before running third-party actions. Prefer secrets managed via the GitHub secrets store over plaintext values in IaC files committed to the repository."
+        }
+      ],
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": null
+      }
+    }
+  }
+}

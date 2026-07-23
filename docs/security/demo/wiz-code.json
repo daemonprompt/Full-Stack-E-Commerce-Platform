@@ -1,0 +1,401 @@
+{
+  "data": {
+    "codeFindings": {
+      "nodes": [
+        {
+          "id": "a1b2c3d4-e5f6-4789-ab12-cd34ef567890",
+          "status": "OPEN",
+          "severity": "CRITICAL",
+          "type": "CODE_ISSUE",
+          "createdAt": "2026-06-20T07:41:33Z",
+          "updatedAt": "2026-06-20T07:41:33Z",
+          "title": "Hardcoded credential \u00e2\u20ac\u201d JWT signing secret",
+          "description": "A hardcoded fallback value for the JWT signing secret is present in source code. The value 'jwt-secret-dev-fallback-2024' is used when the ACCESS_TOKEN_SECRET environment variable is absent.",
+          "path": "src/server/src/shared/utils/auth/tokenUtils.ts",
+          "startLine": 2,
+          "endLine": 2,
+          "snippet": "const ACCESS_TOKEN_FALLBACK = 'jwt-secret-dev-fallback-2024';",
+          "rule": {
+            "id": "WCR-TS-098",
+            "name": "Hardcoded Credential",
+            "cwe": "CWE-798",
+            "owasp": "A02:2025 - Cryptographic Failures",
+            "mitreTechnique": "T1552.001"
+          },
+          "remediationGuidance": "Remove the hardcoded fallback value. Throw an error at startup if ACCESS_TOKEN_SECRET is absent. Reference the secret from AWS Secrets Manager or SSM Parameter Store."
+        },
+        {
+          "id": "b2c3d4e5-f6a7-4890-bc23-de45fg678901",
+          "status": "OPEN",
+          "severity": "HIGH",
+          "type": "CODE_ISSUE",
+          "createdAt": "2026-06-20T07:42:11Z",
+          "updatedAt": "2026-06-20T07:42:11Z",
+          "title": "SQL injection via string interpolation in raw query",
+          "description": "User-supplied input from the query parameter 'q' is interpolated directly into a raw SQL string passed to $queryRawUnsafe. No parameterization is applied before the query is executed against the database.",
+          "path": "src/server/src/modules/product/product.controller.ts",
+          "startLine": 406,
+          "endLine": 412,
+          "snippet": "const results = await prisma.$queryRawUnsafe(\n  `SELECT id, name, description...WHERE name ILIKE '%${q}%'...`\n);",
+          "rule": {
+            "id": "WCR-TS-012",
+            "name": "SQL Injection",
+            "cwe": "CWE-89",
+            "owasp": "A05:2025 - Injection",
+            "mitreTechnique": "T1190"
+          },
+          "remediationGuidance": "Use parameterized queries. Replace $queryRawUnsafe with prisma.$queryRaw using tagged template literals, or use the Prisma ORM where clause with 'contains' mode."
+        },
+        {
+          "id": "c3d4e5f6-a7b8-4901-cd34-ef56gh789012",
+          "status": "OPEN",
+          "severity": "MEDIUM",
+          "type": "CODE_ISSUE",
+          "createdAt": "2026-06-20T07:43:05Z",
+          "updatedAt": "2026-06-20T07:43:05Z",
+          "title": "Non-constant-time comparison of security token",
+          "description": "The resetPassword method compares the stored hashed reset token against the submitted hash using the JavaScript !== operator. String comparison in V8 short-circuits on the first differing character, creating a timing oracle that can be used to reconstruct valid token values through statistical analysis of response time variance.",
+          "path": "src/server/src/modules/auth/auth.service.ts",
+          "startLine": 141,
+          "endLine": 141,
+          "snippet": "if (user.resetPasswordToken !== hashedToken) {",
+          "rule": {
+            "id": "WCR-TS-045",
+            "name": "Timing Attack on Security Token",
+            "cwe": "CWE-208",
+            "owasp": "A02:2025 - Cryptographic Failures",
+            "mitreTechnique": "T1110.002"
+          },
+          "remediationGuidance": "Use crypto.timingSafeEqual(Buffer.from(user.resetPasswordToken), Buffer.from(hashedToken)) for constant-time comparison of security-sensitive strings."
+        },
+        {
+          "id": "d4e5f6a7-b8c9-4012-de45-fg67hi890123",
+          "status": "OPEN",
+          "severity": "MEDIUM",
+          "type": "CODE_ISSUE",
+          "createdAt": "2026-06-20T07:44:18Z",
+          "updatedAt": "2026-06-20T07:44:18Z",
+          "title": "User-controlled input used in RegExp constructor",
+          "description": "The advancedSearch handler constructs a regular expression using unsanitized user input as the pattern string. Specially crafted input (e.g., catastrophic backtracking patterns like '(a+)+') can cause the regex engine to consume excessive CPU cycles, leading to application denial of service.",
+          "path": "src/server/src/modules/product/product.controller.ts",
+          "startLine": 422,
+          "endLine": 422,
+          "snippet": "const pattern = new RegExp(q as string, \"i\");",
+          "rule": {
+            "id": "WCR-TS-067",
+            "name": "Regular Expression Denial of Service (ReDoS)",
+            "cwe": "CWE-1333",
+            "owasp": "A08:2025 - Vulnerable and Outdated Components",
+            "mitreTechnique": "T1499.004"
+          },
+          "remediationGuidance": "Sanitize user input before using it as a regex pattern. Consider using a safe regex library, pre-compiling safe patterns, or switching to database full-text search instead of in-process regex filtering."
+        },
+        {
+          "id": "e5f6a7b8-c9d0-4123-ef56-gh78ij901234",
+          "status": "OPEN",
+          "severity": "HIGH",
+          "type": "CODE_ISSUE",
+          "createdAt": "2026-06-20T07:45:31Z",
+          "updatedAt": "2026-06-20T07:45:31Z",
+          "title": "Missing authentication middleware on mutable route",
+          "description": "The PUT /reviews/:id route in review.routes.ts does not include the 'protect' middleware, allowing any unauthenticated request to modify any review record. The DELETE route on the same resource correctly requires authentication, indicating an inconsistency. Any client can overwrite review content and ratings for any product.",
+          "path": "src/server/src/modules/review/review.routes.ts",
+          "startLine": 8,
+          "endLine": 8,
+          "snippet": "router.put(\"/:id\", controller.updateReview);",
+          "rule": {
+            "id": "WCR-TS-031",
+            "name": "Broken Object Level Authorization",
+            "cwe": "CWE-639",
+            "owasp": "A01:2025 - Broken Access Control",
+            "mitreTechnique": "T1078"
+          },
+          "remediationGuidance": "Add the 'protect' middleware before the updateReview handler. Verify that the authenticated user is the original author of the review before allowing updates."
+        },
+        {
+          "id": "p1a0b0c0-d000-4000-a000-000000000001",
+          "status": "OPEN",
+          "severity": "CRITICAL",
+          "type": "CODE_ISSUE",
+          "createdAt": "2026-06-20T07:46:00Z",
+          "updatedAt": "2026-06-20T07:46:00Z",
+          "title": "Unauthenticated access to full user list including password hashes",
+          "description": "The GET /api/v1/users route does not include the protect middleware. Any unauthenticated client can retrieve the complete user list, which includes email addresses, hashed passwords, and reset tokens. Hashed passwords returned from prisma.user.findMany() with no field projection.",
+          "path": "src/server/src/modules/user/user.routes.ts",
+          "startLine": 7,
+          "endLine": 7,
+          "snippet": "router.get(\"/\", userController.getAllUsers);",
+          "rule": {
+            "id": "WCR-TS-201",
+            "name": "Unauthenticated Access to Sensitive Resource",
+            "cwe": "CWE-284",
+            "owasp": "A01:2025 - Broken Access Control",
+            "mitreTechnique": "T1078"
+          },
+          "remediationGuidance": "Add protect and authorizeRole(\"ADMIN\") middleware before getAllUsers. Exclude password and resetPasswordToken fields from the response projection."
+        },
+        {
+          "id": "p1a0b0c0-d000-4000-a000-000000000002",
+          "status": "OPEN",
+          "severity": "HIGH",
+          "type": "CODE_ISSUE",
+          "createdAt": "2026-06-20T07:47:11Z",
+          "updatedAt": "2026-06-20T07:47:11Z",
+          "title": "Authentication tokens written to application logs",
+          "description": "The authentication middleware logs the full Authorization header value (Bearer token) to stdout via console.log. In production, stdout is captured by CloudWatch Logs.",
+          "path": "src/server/src/shared/middlewares/protect.ts",
+          "startLine": 14,
+          "endLine": 15,
+          "snippet": "console.log(\"User authenticated:\", { userId: decoded.id, token: authHeader });",
+          "rule": {
+            "id": "WCR-TS-199",
+            "name": "Credential Disclosure in Logs",
+            "cwe": "CWE-532",
+            "owasp": "A02:2025 - Cryptographic Failures",
+            "mitreTechnique": "T1552"
+          },
+          "remediationGuidance": "Remove the token value from the log statement. Log only the userId or a sanitized session reference. Never log Authorization header values."
+        },
+        {
+          "id": "p1a0b0c0-d000-4000-a000-000000000003",
+          "status": "OPEN",
+          "severity": "HIGH",
+          "type": "CODE_ISSUE",
+          "createdAt": "2026-06-20T07:48:22Z",
+          "updatedAt": "2026-06-20T07:48:22Z",
+          "title": "Log deletion endpoint accessible without authentication",
+          "description": "The DELETE /api/v1/logs route does not require authentication. Any unauthenticated client can issue a DELETE request that wipes all application log data. The route handler does not write an audit event before deletion.",
+          "path": "src/server/src/modules/logs/log.routes.ts",
+          "startLine": 9,
+          "endLine": 9,
+          "snippet": "router.delete(\"/\", logController.clearLogs);",
+          "rule": {
+            "id": "WCR-TS-200",
+            "name": "Missing Authentication on Destructive Route",
+            "cwe": "CWE-284",
+            "owasp": "A01:2025 - Broken Access Control",
+            "mitreTechnique": "T1070"
+          },
+          "remediationGuidance": "Add protect and authorizeRole(\"ADMIN\") middleware before clearLogs. Write an audit event (who deleted logs, when) to an immutable log store before processing the deletion."
+        },
+        {
+          "id": "f6a7b8c9-d0e1-4234-fg67-hi89jk012345",
+          "status": "OPEN",
+          "severity": "HIGH",
+          "type": "CODE_ISSUE",
+          "createdAt": "2026-07-01T09:11:44Z",
+          "updatedAt": "2026-07-18T08:00:00Z",
+          "title": "Path traversal in user-controlled file parameter",
+          "description": "path.join() with unsanitized req.query.file \u00e2\u20ac\u201d enables directory traversal to arbitrary filesystem paths.",
+          "path": "src/server/src/modules/order/order.controller.ts",
+          "startLine": 13,
+          "endLine": 15,
+          "rule": {
+            "id": "WCR-TS-022",
+            "name": "Path Traversal",
+            "cwe": "CWE-22",
+            "owasp": "A01:2025",
+            "mitreTechnique": "T1083"
+          },
+          "remediationGuidance": "Validate resolved path starts with invoicesDir prefix."
+        },
+        {
+          "id": "g7b8c9d0-e1f2-4345-gh78-ij90kl123456",
+          "status": "OPEN",
+          "severity": "HIGH",
+          "type": "CODE_ISSUE",
+          "createdAt": "2026-07-01T09:12:58Z",
+          "updatedAt": "2026-07-18T08:00:00Z",
+          "title": "Server-side request forgery \u00e2\u20ac\u201d unvalidated URL in HTTP client",
+          "description": "URL from req.body passed directly to fetch() without validation in verifyOutboundConnectivity.",
+          "path": "src/server/src/modules/webhook/webhook.controller.ts",
+          "startLine": 38,
+          "endLine": 38,
+          "rule": {
+            "id": "WCR-TS-055",
+            "name": "Server-Side Request Forgery",
+            "cwe": "CWE-918",
+            "owasp": "A10:2025",
+            "mitreTechnique": "T1190"
+          },
+          "remediationGuidance": "Validate URL against allowlist. Block private IP ranges."
+        },
+        {
+          "id": "i9d0e1f2-g3h4-4567-ij90-kl12mn345678",
+          "status": "OPEN",
+          "severity": "HIGH",
+          "type": "CODE_ISSUE",
+          "createdAt": "2026-07-01T09:15:22Z",
+          "updatedAt": "2026-07-18T08:00:00Z",
+          "title": "SQL injection via string interpolation in GraphQL resolver",
+          "description": "productSearch GraphQL resolver uses $queryRawUnsafe with user-supplied 'query' argument interpolated directly into SQL.",
+          "path": "src/server/src/modules/product/graphql/resolver.ts",
+          "startLine": 12,
+          "endLine": 22,
+          "rule": {
+            "id": "WCR-TS-012",
+            "name": "SQL Injection",
+            "cwe": "CWE-89",
+            "owasp": "A05:2025",
+            "mitreTechnique": "T1190"
+          },
+          "remediationGuidance": "Use parameterized queries."
+        },
+        {
+          "id": "l9m01i39-3l05-4h99-i5j0-8l7k4m1n0679",
+          "status": "OPEN",
+          "severity": "HIGH",
+          "type": "CODE_ISSUE",
+          "createdAt": "2026-07-17T10:05:44Z",
+          "updatedAt": "2026-07-18T08:00:00Z",
+          "title": "Mass assignment \u00e2\u20ac\u201d unsanitized request body in Prisma update",
+          "description": "The updateSettings handler spreads req.body directly into the Prisma update data object without field allowlisting. An attacker who can reach the endpoint with an authenticated session can include arbitrary Prisma-supported fields in the request body, including 'role', 'email', and 'password'.",
+          "path": "src/server/src/modules/user/user.controller.ts",
+          "startLine": 144,
+          "endLine": 148,
+          "snippet": "const updateData = {\n  ...req.body,\n  ...(req.body.preferences ? { preferences: mergedPrefs } : {}),\n};\nawait prisma.user.update({ where: { id }, data: updateData });",
+          "rule": {
+            "id": "WCR-TS-102",
+            "name": "Mass Assignment",
+            "cwe": "CWE-915",
+            "owasp": "A06:2025 - Insecure Design",
+            "mitreTechnique": "T1078"
+          },
+          "remediationGuidance": "Define an explicit allowlist of permitted update fields. Destructure only the expected properties from req.body before passing to Prisma."
+        },
+        {
+          "id": "m0n12j40-4m16-4i00-j6k1-9m8l5n2o1780",
+          "status": "OPEN",
+          "severity": "MEDIUM",
+          "type": "CODE_ISSUE",
+          "createdAt": "2026-07-17T10:07:12Z",
+          "updatedAt": "2026-07-18T08:00:00Z",
+          "title": "Prototype pollution via recursive object merge",
+          "description": "The deepMerge utility function iterates source object keys using Object.keys() and recursively assigns values to target[key]. When source contains a key named '__proto__' (which JSON.parse preserves as an own enumerable property), the recursive call assigns into the actual prototype chain of the target object, polluting Object.prototype.",
+          "path": "src/server/src/shared/utils/deepMerge.ts",
+          "startLine": 14,
+          "endLine": 18,
+          "snippet": "if (!target[key] || typeof target[key] !== \"object\") {\n  target[key] = {};\n}\ndeepMerge(target[key], source[key]);",
+          "rule": {
+            "id": "WCR-TS-089",
+            "name": "Prototype Pollution",
+            "cwe": "CWE-1321",
+            "owasp": "A06:2025 - Insecure Design",
+            "mitreTechnique": "T1565"
+          },
+          "remediationGuidance": "Add Object.prototype.hasOwnProperty check before recursing. Alternatively use structured clone or JSON.parse/stringify to sanitize untrusted input before merging."
+        },
+        {
+          "id": "n1o23k51-5n27-4j11-k7l2-0n9m6o3p2891",
+          "status": "OPEN",
+          "severity": "HIGH",
+          "type": "CODE_ISSUE",
+          "createdAt": "2026-07-17T10:08:55Z",
+          "updatedAt": "2026-07-18T08:00:00Z",
+          "title": "XML External Entity (XXE) injection in XML parser",
+          "description": "The importCatalog handler parses an XML request body using the DOMParser from the xmldom@0.1.31 package (CVE-2022-39353). The parser is instantiated without disabling external entity resolution. An attacker who can send a crafted XML payload with a DOCTYPE declaration can cause the server to resolve external entities, enabling local file disclosure or SSRF.",
+          "path": "src/server/src/modules/product/catalog.controller.ts",
+          "startLine": 8,
+          "endLine": 10,
+          "snippet": "const parser = new DOMParser();\nconst doc = parser.parseFromString(xmlBody, \"text/xml\");",
+          "rule": {
+            "id": "WCR-TS-077",
+            "name": "XML External Entity (XXE) Injection",
+            "cwe": "CWE-611",
+            "owasp": "A04:2025 - Security Misconfiguration",
+            "mitreTechnique": "T1190"
+          },
+          "remediationGuidance": "Upgrade xmldom to 0.7.0 or later. Alternatively, disable external entity resolution by setting the DOMParser options to reject DOCTYPE declarations."
+        },
+        {
+          "id": "o2p34l62-6o38-4k22-l8m3-1o0n7p4q3902",
+          "status": "OPEN",
+          "severity": "HIGH",
+          "type": "CODE_ISSUE",
+          "createdAt": "2026-07-17T10:10:18Z",
+          "updatedAt": "2026-07-18T08:00:00Z",
+          "title": "Stored XSS via dangerouslySetInnerHTML with unsanitized user data",
+          "description": "The ProductSummary React component renders the 'product.description' field using dangerouslySetInnerHTML without HTML sanitization. If an attacker with write access to the product description field (e.g., via admin role) stores an HTML payload, it will execute in the browser of any user viewing the product admin dashboard.",
+          "path": "src/client/app/(private)/dashboard/products/ProductSummary.tsx",
+          "startLine": 6,
+          "endLine": 8,
+          "snippet": "<div\n  className=\"text-sm text-gray-700 prose prose-sm max-w-none\"\n  dangerouslySetInnerHTML={{ __html: product.description }}\n/>",
+          "rule": {
+            "id": "WCR-TS-018",
+            "name": "Cross-Site Scripting (Stored XSS)",
+            "cwe": "CWE-79",
+            "owasp": "A05:2025 - Injection",
+            "mitreTechnique": "T1185"
+          },
+          "remediationGuidance": "Sanitize HTML before rendering. Use DOMPurify or a similar library to strip executable markup before passing to dangerouslySetInnerHTML. Prefer rendering description as plain text where rich formatting is not required."
+        },
+        {
+          "id": "sc01a000-b000-4000-c000-000000000001",
+          "status": "OPEN",
+          "severity": "CRITICAL",
+          "type": "CODE_ISSUE",
+          "createdAt": "2026-07-22T04:30:00Z",
+          "updatedAt": "2026-07-22T04:30:00Z",
+          "title": "Hardcoded JWT signing secret in Terraform ECS task definition",
+          "description": "The ECS task definition in docs/infrastructure/ecs-task.tf injects the value 'jwt-secret-dev-fallback-2024' as a plaintext environment variable (ACCESS_TOKEN_FALLBACK) into the production container. This value matches the hardcoded fallback in src/server/src/shared/utils/auth/tokenUtils.ts. Any process with read access to the container environment or the CI pipeline that deploys this task definition can read this variable.",
+          "path": "docs/infrastructure/ecs-task.tf",
+          "startLine": 39,
+          "endLine": 42,
+          "snippet": "{\n  name  = \"ACCESS_TOKEN_FALLBACK\"\n  value = \"jwt-secret-dev-fallback-2024\"\n}",
+          "rule": {
+            "id": "WCR-TF-041",
+            "name": "Hardcoded Secret in IaC Container Definition",
+            "cwe": "CWE-798",
+            "owasp": "A02:2025 - Cryptographic Failures",
+            "mitreTechnique": "T1552.001"
+          },
+          "remediationGuidance": "Move the secret to AWS Secrets Manager or SSM Parameter Store. Reference via the 'secrets' block in the container definition (not 'environment'). Remove the hardcoded value from source control and rotate the secret immediately."
+        },
+        {
+          "id": "sc01a000-b000-4000-c000-000000000002",
+          "status": "OPEN",
+          "severity": "HIGH",
+          "type": "CODE_ISSUE",
+          "createdAt": "2026-07-22T04:31:00Z",
+          "updatedAt": "2026-07-22T04:31:00Z",
+          "title": "CI workflow uses mutable third-party action tag without SHA pin",
+          "description": "The deploy-staging job in .github/workflows/ci.yml uses 'aws-actions/configure-aws-credentials@v2' \u00e2\u20ac\u201d a mutable tag reference to a third-party action maintained by AWS. If the upstream repository is compromised or the tag is moved to point to malicious code, the CI runner will execute the replacement action in the workflow context. The workflow runs on pull_request events and has access to AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY repository secrets. Additionally, the workflow checks out the full repository including docs/infrastructure/ecs-task.tf, making ACCESS_TOKEN_FALLBACK readable by any step after checkout.",
+          "path": ".github/workflows/ci.yml",
+          "startLine": 44,
+          "endLine": 44,
+          "snippet": "- uses: aws-actions/configure-aws-credentials@v2",
+          "rule": {
+            "id": "WCR-CICD-007",
+            "name": "Unpinned Third-Party CI Action",
+            "cwe": "CWE-494",
+            "owasp": "A03:2025 - Supply Chain Failures",
+            "mitreTechnique": "T1195.001"
+          },
+          "remediationGuidance": "Pin all action references to a full-length commit SHA. Enable Dependabot for GitHub Actions to receive update PRs. Audit third-party actions before use."
+        },
+        {
+          "id": "sc01a000-b000-4000-c000-000000000003",
+          "status": "OPEN",
+          "severity": "HIGH",
+          "type": "CODE_ISSUE",
+          "createdAt": "2026-07-22T04:32:00Z",
+          "updatedAt": "2026-07-22T04:32:00Z",
+          "title": "CI workflow checks out repository before running untrusted third-party action",
+          "description": "The ci.yml workflow places 'actions/checkout@v3' before 'aws-actions/configure-aws-credentials@v2'. The repository is fully checked out, including docs/infrastructure/ecs-task.tf, before the third-party action executes. The checked-out working directory is accessible to all subsequent workflow steps.",
+          "path": ".github/workflows/ci.yml",
+          "startLine": 40,
+          "endLine": 47,
+          "snippet": "steps:\n  - uses: actions/checkout@v3\n  ...\n  - uses: aws-actions/configure-aws-credentials@v2",
+          "rule": {
+            "id": "WCR-CICD-009",
+            "name": "Secret Exposed to Untrusted Action via Checkout",
+            "cwe": "CWE-312",
+            "owasp": "A03:2025 - Supply Chain Failures",
+            "mitreTechnique": "T1552.004"
+          },
+          "remediationGuidance": "Audit the contents of the checked-out repository for plaintext secrets before running third-party actions. Prefer secrets managed via the GitHub secrets store over plaintext values in IaC files committed to the repository."
+        }
+      ]
+    }
+  }
+}

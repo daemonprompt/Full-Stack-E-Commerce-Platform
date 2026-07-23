@@ -1,0 +1,136 @@
+{
+  "scan_id": "burp-scan-2026-06-20-e2b7f4c3",
+  "status": "succeeded",
+  "start_time": "2026-06-20T01:00:00Z",
+  "end_time": "2026-06-20T05:33:44Z",
+  "scan_configurations": [
+    {
+      "name": "Audit checks - all issues",
+      "type": "NamedConfiguration"
+    }
+  ],
+  "scan_metrics": {
+    "total_requests": 3241,
+    "total_responses": 3239,
+    "issues_found": 4,
+    "crawl_coverage_percentage": 71
+  },
+  "issues": [
+    {
+      "type_index": "5243136",
+      "name": "Authentication bypass — forged JWT accepted on protected endpoint",
+      "severity": "critical",
+      "confidence": "certain",
+      "host": "https://api.techstride.io",
+      "path": "/api/v1/users",
+      "description": "A JWT token signed with the hardcoded fallback secret ('jwt-secret-dev-fallback-2024') was accepted as valid on the GET /api/v1/users endpoint. The forged token specified role=ADMIN and an arbitrary userId. The server returned HTTP 200 with full user records. No valid session was established prior to the request.",
+      "remediation": "Remove the hardcoded fallback signing secret from source code. Require ACCESS_TOKEN_SECRET to be set at startup. Rotate all existing tokens.",
+      "evidence": [
+        {
+          "request": {
+            "method": "GET",
+            "url": "/api/v1/users",
+            "headers": {
+              "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMCIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc1MDM4ODgwMH0.k3Zj8xQpN2mVsLdR7wYfHtCgAoKiBuEzMnPvXs4T0c"
+            }
+          },
+          "response": {
+            "status": 200,
+            "time_ms": 41,
+            "body_preview": "{\"data\": {\"users\": [{\"id\": \"...\", \"email\": \"admin@techstride.io\", \"role\": \"ADMIN\", ...}]}, \"message\": \"Users retrieved\"}"
+          },
+          "type": "auth_bypass_confirmed",
+          "notes": "JWT header: alg=HS256. Signed with 'jwt-secret-dev-fallback-2024'. Server accepted without rejection. Role claim not validated against database record."
+        }
+      ],
+      "references": [
+        "https://owasp.org/Top10/A02_2025-Cryptographic_Failures/",
+        "https://portswigger.net/web-security/jwt"
+      ]
+    },
+    {
+      "type_index": "1049088",
+      "name": "SQL injection",
+      "severity": "high",
+      "confidence": "certain",
+      "host": "https://api.techstride.io",
+      "path": "/api/v1/products/search",
+      "description": "SQL injection confirmed in the 'q' parameter of the product search endpoint via time-delay technique. No authentication required. A SLEEP-based payload caused a 5-second response delay confirming blind SQL injection.",
+      "remediation": "Use parameterized queries. Replace $queryRawUnsafe with prisma.$queryRaw tagged templates.",
+      "evidence": [
+        {
+          "request": {
+            "method": "GET",
+            "url": "/api/v1/products/search?q=shoes'%3B%20SELECT%20pg_sleep(5)--",
+            "headers": {}
+          },
+          "response": {
+            "status": 200,
+            "time_ms": 5189,
+            "body_preview": "{\"data\": {\"products\": []}, \"message\": \"Search results\"}"
+          },
+          "type": "time_delay"
+        }
+      ],
+      "references": [
+        "https://portswigger.net/web-security/sql-injection",
+        "https://owasp.org/Top10/A05_2025-Injection/"
+      ]
+    },
+    {
+      "type_index": "2097152",
+      "name": "Broken object level authorization — order history",
+      "severity": "medium",
+      "confidence": "certain",
+      "host": "https://api.techstride.io",
+      "path": "/api/v1/orders/:id",
+      "description": "GET /api/v1/orders/:id returns order details without verifying the authenticated user owns the requested order. An authenticated user can retrieve any order by supplying an arbitrary orderId. Response includes billing address, items purchased, payment summary, and the order owner's user ID.",
+      "remediation": "Add ownership check: verify req.user.id matches the userId on the retrieved order before returning the response. Return 403 if the order belongs to a different user.",
+      "evidence": [
+        {
+          "request": {
+            "method": "GET",
+            "url": "/api/v1/orders/b3f7a1d2-8c4e-4b19-a0f6-9e2d3c5b7a8f",
+            "headers": {"Cookie": "accessToken=<other_users_valid_session>"}
+          },
+          "response": {
+            "status": 200,
+            "time_ms": 33,
+            "body_preview": "{\"data\": {\"order\": {\"userId\": \"<different_user_id>\", \"total\": 149.99, \"billingAddress\": {\"street\": \"...\", \"city\": \"...\", \"zip\": \"...\"}}}, \"message\": \"Order retrieved\"}"
+          },
+          "type": "idor_confirmed"
+        }
+      ],
+      "references": [
+        "https://owasp.org/Top10/A01_2025-Broken_Access_Control/",
+        "https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/"
+      ]
+    },
+    {
+      "type_index": "2885632",
+      "name": "User enumeration via response differential",
+      "severity": "low",
+      "confidence": "certain",
+      "host": "https://api.techstride.io",
+      "path": "/api/v1/auth/forgot-password",
+      "description": "The POST /api/v1/auth/forgot-password endpoint returns different HTTP status codes and response bodies for registered vs. unregistered email addresses, enabling enumeration of registered accounts without authentication.",
+      "remediation": "Return the same generic message and HTTP 200 status regardless of whether the email address is registered. Do not disclose account existence.",
+      "evidence": [
+        {
+          "request": {"method": "POST", "url": "/api/v1/auth/forgot-password", "body": "{\"email\": \"admin@techstride.io\"}"},
+          "response": {"status": 200, "body_preview": "{\"message\": \"Password reset email sent\"}"},
+          "type": "registered_email_response"
+        },
+        {
+          "request": {"method": "POST", "url": "/api/v1/auth/forgot-password", "body": "{\"email\": \"notauser@example.com\"}"},
+          "response": {"status": 404, "body_preview": "{\"message\": \"No account found with that email address\"}"},
+          "type": "unregistered_email_response",
+          "notes": "Status code and body both differ — enumeration trivially confirmed without authentication"
+        }
+      ],
+      "references": [
+        "https://owasp.org/Top10/A01_2025-Broken_Access_Control/"
+      ]
+    }
+  ]
+}

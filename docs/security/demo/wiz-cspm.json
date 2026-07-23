@@ -1,0 +1,270 @@
+{
+  "data": {
+    "issues": {
+      "nodes": [
+        {
+          "id": "a3f92c81-4d1e-4b77-9a3c-8f2e1d0c5b44",
+          "status": "OPEN",
+          "severity": "HIGH",
+          "type": "CLOUD_CONFIGURATION",
+          "createdAt": "2026-06-19T14:22:11Z",
+          "updatedAt": "2026-07-02T08:00:00Z",
+          "resolvedAt": null,
+          "title": "ElastiCache cluster has no AUTH token configured",
+          "description": "The ElastiCache Redis cluster 'ecommerce-cache' does not require an AUTH token for client authentication. Any client that can reach port 6379 has unrestricted read/write access to all cached data, including session tokens and JWT blacklist entries.",
+          "entity": {
+            "id": "cluster/ecommerce-cache",
+            "name": "ecommerce-cache",
+            "type": "ELASTICACHE_CLUSTER",
+            "cloudPlatform": "AWS",
+            "region": "us-east-1"
+          },
+          "control": {
+            "id": "WC-AWS-ElastiCache-007",
+            "name": "ElastiCache Redis clusters should require AUTH tokens",
+            "description": "Enabling AUTH for Redis prevents unauthenticated access to cached data.",
+            "severity": "HIGH",
+            "mitreTechnique": "T1190"
+          },
+          "securitySubCategories": [
+            {
+              "title": "Ensure ElastiCache for Redis clusters use encryption in transit and at rest",
+              "category": {
+                "name": "Data Protection",
+                "framework": {
+                  "name": "AWS Foundational Security Best Practices",
+                  "shortName": "AWS-FSBP"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "b7d4e219-0a33-4f2c-bc91-7e3a5d8f1c62",
+          "status": "OPEN",
+          "severity": "HIGH",
+          "type": "CLOUD_CONFIGURATION",
+          "createdAt": "2026-06-19T14:23:05Z",
+          "updatedAt": "2026-07-02T08:00:00Z",
+          "resolvedAt": null,
+          "title": "Security group allows unrestricted inbound access to Redis port 6379",
+          "description": "Security group 'ecommerce-cache' (sg-0ec3a92f1d4b78c45) permits inbound TCP traffic from 0.0.0.0/0 on port 6379.",
+          "entity": {
+            "id": "sg-0ec3a92f1d4b78c45",
+            "name": "ecommerce-cache",
+            "type": "SECURITY_GROUP",
+            "cloudPlatform": "AWS",
+            "region": "us-east-1"
+          },
+          "control": {
+            "id": "WC-AWS-SG-003",
+            "name": "Security groups should not permit unrestricted access to sensitive ports",
+            "severity": "HIGH",
+            "mitreTechnique": "T1190"
+          },
+          "securitySubCategories": [
+            {
+              "title": "SC-7 - Boundary Protection",
+              "category": {
+                "name": "System and Communications Protection",
+                "framework": {
+                  "name": "NIST SP 800-53 Rev 5",
+                  "shortName": "NIST-800-53"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "c1a83d47-5f29-4e11-a7b2-0d9c6e3f2891",
+          "status": "OPEN",
+          "severity": "MEDIUM",
+          "type": "CLOUD_CONFIGURATION",
+          "createdAt": "2026-06-19T14:24:18Z",
+          "updatedAt": "2026-07-02T08:00:00Z",
+          "resolvedAt": null,
+          "title": "ECS task definition does not specify a non-root user",
+          "description": "The ECS task definition 'ecommerce-api:8' runs container processes as root (UID 0).",
+          "entity": {
+            "id": "arn:aws:ecs:us-east-1:123456789012:task-definition/ecommerce-api:8",
+            "name": "ecommerce-api:8",
+            "type": "ECS_TASK_DEFINITION",
+            "cloudPlatform": "AWS",
+            "region": "us-east-1"
+          },
+          "control": {
+            "id": "WC-AWS-ECS-004",
+            "name": "ECS task definitions should specify a non-root user",
+            "severity": "MEDIUM",
+            "mitreTechnique": "T1068"
+          },
+          "securitySubCategories": []
+        },
+        {
+          "id": "d2f94b62-6e38-4a22-b8c3-1e0d7f4g3902",
+          "status": "OPEN",
+          "severity": "MEDIUM",
+          "type": "CLOUD_CONFIGURATION",
+          "createdAt": "2026-06-19T14:25:33Z",
+          "updatedAt": "2026-07-02T08:00:00Z",
+          "resolvedAt": null,
+          "title": "ECS task definition contains sensitive environment variables in plaintext",
+          "description": "The ECS task definition 'ecommerce-api:8' passes sensitive values (DATABASE_URL, STRIPE_SECRET_KEY) as plaintext environment variables.",
+          "entity": {
+            "id": "arn:aws:ecs:us-east-1:123456789012:task-definition/ecommerce-api:8",
+            "name": "ecommerce-api:8",
+            "type": "ECS_TASK_DEFINITION",
+            "cloudPlatform": "AWS",
+            "region": "us-east-1"
+          },
+          "control": {
+            "id": "WC-AWS-ECS-008",
+            "name": "ECS task definitions should use secrets management for sensitive values",
+            "severity": "MEDIUM",
+            "mitreTechnique": "T1552.001"
+          },
+          "securitySubCategories": []
+        },
+        {
+          "id": "e3g05c73-7f49-4b33-c9d4-2f1e8g5h4013",
+          "status": "OPEN",
+          "severity": "MEDIUM",
+          "type": "CLOUD_CONFIGURATION",
+          "createdAt": "2026-06-19T14:26:47Z",
+          "updatedAt": "2026-07-02T08:00:00Z",
+          "resolvedAt": null,
+          "title": "RDS security group allows inbound access from 0.0.0.0/0 on port 5432",
+          "description": "Security group 'ecommerce-db' permits inbound TCP traffic from 0.0.0.0/0 on port 5432 (PostgreSQL).",
+          "entity": {
+            "id": "sg-0ab7d3e91f2c4d567",
+            "name": "ecommerce-db",
+            "type": "SECURITY_GROUP",
+            "cloudPlatform": "AWS",
+            "region": "us-east-1"
+          },
+          "control": {
+            "id": "WC-AWS-SG-005",
+            "name": "RDS security groups should restrict inbound access to known CIDRs",
+            "severity": "MEDIUM",
+            "mitreTechnique": "T1190"
+          },
+          "securitySubCategories": []
+        },
+        {
+          "id": "h6j38f06-0i72-4e66-f2g7-5i4h1j8k7346",
+          "status": "OPEN",
+          "severity": "MEDIUM",
+          "type": "CLOUD_CONFIGURATION",
+          "createdAt": "2026-07-01T16:10:22Z",
+          "updatedAt": "2026-07-02T08:00:00Z",
+          "resolvedAt": null,
+          "title": "ECS task IAM role grants overly broad S3 permissions",
+          "description": "The IAM role 'ecommerce-task-role' attached to the ECS task definition grants s3:* (all actions) on * (all resources). This exceeds the minimum permissions required for application operation and would allow a compromised container to read, write, and delete all S3 objects accessible to the account.",
+          "entity": {
+            "id": "arn:aws:iam::123456789012:role/ecommerce-task-role",
+            "name": "ecommerce-task-role",
+            "type": "IAM_ROLE",
+            "cloudPlatform": "AWS",
+            "region": "us-east-1"
+          },
+          "control": {
+            "id": "WC-AWS-IAM-021",
+            "name": "IAM policies should follow the principle of least privilege",
+            "description": "IAM roles should grant only the minimum permissions required. Wildcard actions and resources should be avoided.",
+            "severity": "MEDIUM"
+          },
+          "securitySubCategories": [
+            {
+              "title": "AC-6 - Least Privilege",
+              "category": {
+                "name": "Access Control",
+                "framework": {
+                  "name": "NIST SP 800-53 Rev 5",
+                  "shortName": "NIST-800-53"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "h9j21m83-0j73-4g77-h5i6-7j4i1k0l8513",
+          "status": "OPEN",
+          "severity": "HIGH",
+          "type": "CLOUD_CONFIGURATION",
+          "createdAt": "2026-07-01T14:00:00Z",
+          "updatedAt": "2026-07-02T08:00:00Z",
+          "resolvedAt": null,
+          "title": "ECS cluster does not enforce IMDSv2 for task metadata requests",
+          "description": "The ECS cluster 'ecommerce-cluster' does not set requiresCompatibilities or metadata endpoint options to enforce IMDSv2. Tasks running on this cluster can retrieve AWS instance metadata using IMDSv1, which does not require a session token and is accessible from any process within the container.",
+          "entity": {
+            "id": "arn:aws:ecs:us-east-1:123456789012:cluster/ecommerce-cluster",
+            "name": "ecommerce-cluster",
+            "type": "ECS_CLUSTER",
+            "cloudPlatform": "AWS",
+            "region": "us-east-1"
+          },
+          "control": {
+            "id": "WC-AWS-EC2-IMDSv2",
+            "name": "ECS tasks should use IMDSv2 to access instance metadata",
+            "description": "IMDSv2 requires a session-oriented approach using PUT request for tokens, providing protection against SSRF-based credential theft.",
+            "severity": "HIGH",
+            "mitreTechnique": "T1552.005"
+          },
+          "securitySubCategories": [
+            {
+              "title": "IA-3 - Device Identification and Authentication",
+              "category": {
+                "name": "Identification and Authentication",
+                "framework": {
+                  "name": "NIST SP 800-53 Rev 5",
+                  "shortName": "NIST-800-53"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "waf-excl-graphql-001",
+          "status": "OPEN",
+          "severity": "HIGH",
+          "type": "CLOUD_CONFIGURATION",
+          "createdAt": "2026-07-01T16:30:00Z",
+          "updatedAt": "2026-07-02T08:00:00Z",
+          "resolvedAt": null,
+          "title": "WAF inspection rule excludes /api/v1/graphql path from SQL injection pattern matching",
+          "description": "The WAF configuration in docs/infrastructure/waf.tf defines a managed rule group override that excludes the path /api/v1/graphql from the AWS-AWSManagedRulesSQLiRuleSet inspection rule. Requests to the GraphQL endpoint bypass SQL injection pattern matching entirely. The exclusion is applied at the URI path level and affects all HTTP methods to that path.",
+          "entity": {
+            "id": "arn:aws:wafv2:us-east-1:123456789012:regional/webacl/ecommerce-waf/abc123",
+            "name": "ecommerce-waf",
+            "type": "WAF_WEB_ACL",
+            "cloudPlatform": "AWS",
+            "region": "us-east-1"
+          },
+          "control": {
+            "id": "WC-AWS-WAF-009",
+            "name": "WAF managed rule group overrides should be reviewed for security impact",
+            "description": "WAF rule exclusions reduce inspection coverage. Path-level exclusions from injection detection rules should be documented and reviewed against the attack surface of the excluded endpoint.",
+            "severity": "HIGH",
+            "mitreTechnique": "T1190"
+          },
+          "securitySubCategories": [
+            {
+              "title": "6.4.2 - A web application firewall is deployed in front of public-facing web applications",
+              "category": {
+                "name": "Public-Facing Application Protection",
+                "framework": {
+                  "name": "PCI DSS v4.0",
+                  "shortName": "PCI-DSS"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "eyJpZCI6Img2ajM4ZjA2LTBpNzItNGU2Ni1mMmc3LTVpNGgxajhrNzM0NiJ9"
+      }
+    }
+  }
+}

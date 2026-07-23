@@ -1,0 +1,290 @@
+{
+  "scanId": "demo-scan-2026-07-23",
+  "target": "techstride.io",
+  "findings": [
+    {
+      "id": "ionix-finding-001",
+      "type": "CERTIFICATE_EXPIRY",
+      "severity": "LOW",
+      "title": "TLS certificate expiring within 90 days",
+      "description": "The wildcard TLS certificate for *.techstride.io expires on 2026-08-31T00:00:00Z (72 days from scan date). Automated renewal should be verified to avoid service disruption.",
+      "affected_asset": {
+        "type": "CERTIFICATE",
+        "value": "*.techstride.io"
+      },
+      "discovery_method": "PASSIVE",
+      "evidence": {
+        "certificate_expiry": "2026-08-31T00:00:00Z",
+        "days_remaining": 72,
+        "issuer": "Amazon",
+        "renewal_check": "ACM auto-renewal status not confirmed"
+      },
+      "first_seen": "2026-06-20T09:00:00Z",
+      "last_seen": "2026-06-20T09:15:00Z"
+    },
+    {
+      "id": "ionix-finding-002",
+      "type": "UNAUTHENTICATED_ENDPOINT",
+      "severity": "MEDIUM",
+      "title": "Admin dashboard routes discoverable via client bundle analysis",
+      "description": "Static analysis of the Next.js client bundle at store.techstride.io reveals internal routing for /dashboard/products, /dashboard/users, and /dashboard/orders. These paths are publicly enumerable. Client-side authentication redirects are the only control preventing unauthorized access \u00e2\u20ac\u201d no server-side session validation is enforced on the Next.js page routes.",
+      "affected_asset": {
+        "type": "ENDPOINT",
+        "value": "https://store.techstride.io/dashboard"
+      },
+      "discovery_method": "PASSIVE_BUNDLE_ANALYSIS",
+      "evidence": {
+        "js_bundle_url": "https://store.techstride.io/_next/static/chunks/pages/dashboard-abc123.js",
+        "discovered_paths": [
+          "/dashboard/products",
+          "/dashboard/users",
+          "/dashboard/orders",
+          "/dashboard/analytics",
+          "/dashboard/settings"
+        ],
+        "auth_mechanism": "client-side-redirect-only"
+      },
+      "first_seen": "2026-06-15T00:00:00Z",
+      "last_seen": "2026-06-20T09:00:00Z"
+    },
+    {
+      "id": "ionix-finding-003",
+      "type": "MISSING_SECURITY_HEADER",
+      "severity": "LOW",
+      "title": "Missing Content-Security-Policy header",
+      "description": "Responses from store.techstride.io do not include a Content-Security-Policy header. Without a CSP, the browser permits inline script execution and resource loading from arbitrary origins, increasing the impact of any cross-site scripting vulnerabilities.",
+      "affected_asset": {
+        "type": "DOMAIN",
+        "value": "store.techstride.io"
+      },
+      "discovery_method": "PASSIVE",
+      "evidence": {
+        "request": "GET https://store.techstride.io/",
+        "response_headers_present": [
+          "X-Frame-Options: SAMEORIGIN",
+          "X-Content-Type-Options: nosniff"
+        ],
+        "response_headers_missing": [
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ]
+      },
+      "first_seen": "2026-06-20T09:05:00Z",
+      "last_seen": "2026-06-20T09:05:00Z"
+    },
+    {
+      "id": "ionix-finding-004",
+      "type": "TECHNOLOGY_FINGERPRINT",
+      "severity": "INFORMATIONAL",
+      "title": "Server framework version disclosed in response headers",
+      "description": "HTTP responses from api.techstride.io include the X-Powered-By: Express header. Error responses additionally disclose the Node.js version. This information assists attackers in targeting known vulnerabilities.",
+      "affected_asset": {
+        "type": "DOMAIN",
+        "value": "api.techstride.io"
+      },
+      "discovery_method": "PASSIVE",
+      "evidence": {
+        "header": "X-Powered-By: Express",
+        "error_response_leakage": "Node.js v22.x.x stack trace visible in 500 responses"
+      },
+      "first_seen": "2026-06-20T09:06:00Z",
+      "last_seen": "2026-06-20T09:06:00Z"
+    },
+    {
+      "id": "ionix-finding-005",
+      "type": "UNAUTHENTICATED_ENDPOINT",
+      "severity": "INFORMATIONAL",
+      "title": "Stripe webhook endpoint publicly accessible without IP allowlisting",
+      "description": "The POST /api/v1/webhook endpoint is publicly accessible from any IP address. Stripe recommends restricting webhook delivery to Stripe's published IP ranges. The endpoint does validate Stripe-Signature headers, but the absence of IP allowlisting increases the attack surface for signature bypass attempts.",
+      "affected_asset": {
+        "type": "ENDPOINT",
+        "value": "https://api.techstride.io/api/v1/webhook"
+      },
+      "discovery_method": "PASSIVE",
+      "evidence": {
+        "accessible_from_external": true,
+        "signature_validation": "present",
+        "ip_allowlisting": "absent"
+      },
+      "first_seen": "2026-06-10T00:00:00Z",
+      "last_seen": "2026-06-20T09:00:00Z"
+    },
+    {
+      "id": "ionix-finding-006",
+      "type": "SEARCH_ENDPOINT_PARAM_REFLECTION",
+      "severity": "INFORMATIONAL",
+      "title": "Product search endpoint accepts user-controlled query parameter without observable sanitization",
+      "description": "The GET /api/v1/products/search endpoint accepts a 'q' query parameter and reflects it in the context of the database query. Crawl-based analysis confirms the parameter is included in response metadata. Detailed validation behavior requires authenticated analysis.",
+      "affected_asset": {
+        "type": "ENDPOINT",
+        "value": "https://api.techstride.io/api/v1/products/search"
+      },
+      "discovery_method": "ACTIVE_CRAWL",
+      "evidence": {
+        "example_request": "GET /api/v1/products/search?q=shoes",
+        "param_reflected_in_response": true,
+        "auth_required": false
+      },
+      "first_seen": "2026-06-20T09:10:00Z",
+      "last_seen": "2026-06-20T09:10:00Z"
+    },
+    {
+      "id": "ionix-finding-010",
+      "type": "UNAUTHENTICATED_ENDPOINT",
+      "severity": "HIGH",
+      "title": "User list endpoint accessible without authentication \u2014 returns hashed passwords",
+      "description": "The GET /api/v1/users endpoint is publicly accessible without authentication. Response body includes email, role, createdAt, and hashed password fields for all registered users. Enumerated via active crawl.",
+      "affected_asset": {
+        "type": "ENDPOINT",
+        "value": "https://api.techstride.io/api/v1/users"
+      },
+      "discovery_method": "ACTIVE_CRAWL",
+      "evidence": {
+        "request": "GET /api/v1/users",
+        "response_status": 200,
+        "auth_required": false,
+        "sample_field_names": [
+          "id",
+          "email",
+          "name",
+          "role",
+          "password",
+          "createdAt"
+        ],
+        "record_count_observed": 47
+      },
+      "first_seen": "2026-06-20T09:11:00Z",
+      "last_seen": "2026-06-20T09:11:00Z"
+    },
+    {
+      "id": "ionix-finding-011",
+      "type": "ACTIVE_PROBE",
+      "severity": "HIGH",
+      "title": "Application log endpoint publicly reachable \u00e2\u20ac\u201d GET /api/v1/logs returns log content without authentication",
+      "description": "Active probe confirmed GET /api/v1/logs is accessible from external IP addresses without authentication. The response body contains timestamped application log events. No session token or authorization header was required.",
+      "affected_asset": {
+        "type": "ENDPOINT",
+        "value": "https://api.techstride.io/api/v1/logs"
+      },
+      "discovery_method": "ACTIVE_PROBE",
+      "evidence": {
+        "request": {
+          "method": "GET",
+          "url": "https://api.techstride.io/api/v1/logs",
+          "headers": {}
+        },
+        "response": {
+          "status": 200,
+          "body_preview": "[{\"level\":\"info\",\"message\":\"User authenticated\",\"userId\":\"a4f3c1b2-...\",\"token\":\"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\"timestamp\":\"2026-06-20T09:04:17Z\"},{\"level\":\"info\",\"message\":\"User authenticated\",\"userId\":\"b7d9e8f1-...\",\"token\":\"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\"timestamp\":\"2026-06-20T09:05:03Z\"}]"
+        },
+        "out_of_band": {
+          "auth_required": false,
+          "log_content_returned": true,
+          "probe_from_external_ip": true
+        }
+      },
+      "first_seen": "2026-06-20T09:12:00Z",
+      "last_seen": "2026-06-20T09:12:00Z"
+    },
+    {
+      "id": "ionix-finding-012",
+      "type": "CREDENTIAL_EXPOSURE",
+      "severity": "MEDIUM",
+      "title": "Password reset token transmitted as URL query parameter",
+      "description": "The password reset flow delivers the reset token as a URL query parameter in the reset link (e.g., /reset-password?token=<value>). Tokens in URLs appear in browser history, server access logs, and HTTP Referer headers sent to third-party resources. Any logging system capturing request URLs stores active password reset credentials.",
+      "affected_asset": {
+        "type": "ENDPOINT",
+        "value": "https://store.techstride.io/reset-password"
+      },
+      "discovery_method": "PASSIVE",
+      "evidence": {
+        "observed_url_pattern": "https://store.techstride.io/reset-password?token=<reset_token_value>",
+        "token_in_url": true,
+        "token_in_server_logs": "confirmed \u00e2\u20ac\u201d access logs captured full URL including token parameter",
+        "referer_exposure": "token present in Referer header if user navigates away before completing reset"
+      },
+      "first_seen": "2026-06-20T09:13:00Z",
+      "last_seen": "2026-06-20T09:13:00Z"
+    },
+    {
+      "id": "ionix-finding-007",
+      "type": "ACTIVE_PROBE",
+      "severity": "HIGH",
+      "title": "Server-Side Request Forgery (SSRF) \u00e2\u20ac\u201d Confirmed Outbound Request to Internal Metadata Service",
+      "description": "Active probe confirmed that POST /api/v1/webhook/ping initiates outbound HTTP requests to attacker-controlled URLs. Probe request targeting the AWS Instance Metadata Service (http://169.254.169.254/latest/meta-data/) received a 200 response from the server, indicating the container made a successful outbound connection to the internal endpoint. Server response body contained the IMDS directory listing proxied through the application response.",
+      "affected_asset": {
+        "type": "ENDPOINT",
+        "value": "https://api.techstride.io/api/v1/webhook/ping"
+      },
+      "discovery_method": "ACTIVE_PROBE",
+      "evidence": {
+        "request": {
+          "method": "POST",
+          "url": "https://api.techstride.io/api/v1/webhook/ping",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": "{\"url\": \"http://169.254.169.254/latest/meta-data/\"}"
+        },
+        "response": {
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": "{\"data\": {\"status\": 200, \"body\": \"ami-id\\nami-launch-index\\nami-manifest-path\\nhostname\\niam\\ninstance-action\\ninstance-id\\ninstance-life-cycle\\ninstance-type\\nlocal-hostname\\nlocal-ipv4\\nmac\\nmetrics\\nnetwork\\nplacement\\nprofile\\npublic-hostname\\npublic-ipv4\\npublic-keys\\nreservation-id\\nsecurity-groups\\nservices\"}, \"message\": \"Endpoint reachable\"}"
+        },
+        "out_of_band": {
+          "dns_lookup": false,
+          "http_response_received": true,
+          "response_time_ms": 12,
+          "notes": "Response body contains IMDS directory listing proxied through application response. Sub-15ms response consistent with same-VPC routing. IAM credential path: /latest/meta-data/iam/security-credentials/"
+        }
+      },
+      "first_seen": "2026-07-01T14:22:07Z",
+      "last_seen": "2026-07-02T10:00:00Z"
+    },
+    {
+      "id": "ionix-finding-008",
+      "type": "EXPOSED_PORT",
+      "severity": "HIGH",
+      "title": "Redis port 6379 accessible from public internet",
+      "description": "Port scan of the ALB IP (54.236.112.83) and associated infrastructure detected TCP port 6379 accepting connections from external IP addresses. This is consistent with the security group configuration observed in prior assessments. No AUTH challenge was observed on connection.",
+      "affected_asset": {
+        "type": "IP",
+        "value": "54.236.112.83"
+      },
+      "discovery_method": "ACTIVE_PORT_SCAN",
+      "evidence": {
+        "port": 6379,
+        "protocol": "tcp",
+        "banner": "-ERR wrong number of arguments for 'PING' command\r\n",
+        "auth_required": false,
+        "connection_successful": true
+      },
+      "first_seen": "2026-07-02T08:45:00Z",
+      "last_seen": "2026-07-02T10:00:00Z"
+    },
+    {
+      "id": "ionix-finding-009",
+      "type": "NEW_ENDPOINT_DISCOVERY",
+      "severity": "INFORMATIONAL",
+      "title": "New API endpoint discovered: webhook connectivity check",
+      "description": "A new endpoint POST /api/v1/webhook/ping was discovered during this scan period. The endpoint accepts a JSON body containing a 'url' field and performs an outbound HTTP request to the specified address. No authentication is required.",
+      "affected_asset": {
+        "type": "ENDPOINT",
+        "value": "https://api.techstride.io/api/v1/webhook/ping"
+      },
+      "discovery_method": "ACTIVE_CRAWL",
+      "evidence": {
+        "first_observed": "2026-07-01T00:00:00Z",
+        "auth_required": false,
+        "method": "POST",
+        "request_body_schema": {
+          "url": "string"
+        }
+      },
+      "first_seen": "2026-07-01T00:00:00Z",
+      "last_seen": "2026-07-02T10:00:00Z"
+    }
+  ]
+}

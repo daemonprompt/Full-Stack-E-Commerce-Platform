@@ -1,0 +1,34 @@
+# Snyk (https://snyk.io) policy file
+version: v1.25.0
+
+# Ignore rules — reviewed and acknowledged by security team
+ignore:
+  SNYK-JS-XLSX-8219869:
+    - '*':
+        reason: >
+          xlsx@0.18.5 is used for internal bulk product import only. The
+          prototype pollution CVE (CVSS 7.5) requires attacker-controlled
+          input to the xlsx parser. Import is restricted to authenticated
+          admin users. Risk accepted pending vendor patch.
+        expires: "2027-01-01T00:00:00.000Z"
+        created: "2026-03-14T10:22:00.000Z"
+
+  SNYK-JS-XLSX-7910752:
+    - '*':
+        reason: >
+          ReDoS in xlsx regex patterns. Exploitable via malformed spreadsheet
+          input. Import restricted to admin-controlled files. Risk accepted
+          pending evaluation of xlsxjs/exceljs migration.
+        expires: "2027-01-01T00:00:00.000Z"
+        created: "2026-03-14T10:22:00.000Z"
+
+  SNYK-JS-XLSX-6091070:
+    - '*':
+        reason: >
+          Uncontrolled resource consumption. Same scope and acceptance criteria
+          as SNYK-JS-XLSX-8219869.
+        expires: "2027-01-01T00:00:00.000Z"
+        created: "2026-03-14T10:22:00.000Z"
+
+# Package resolution
+patch: {}

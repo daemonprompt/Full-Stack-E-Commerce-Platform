@@ -1,0 +1,51 @@
+###############################################################################
+# Datadog Agent — ECS Fargate sidecar configuration
+# Deployed alongside ecommerce-api container in the ECS task definition
+#
+# Collects:
+#   - Application logs (stdout/stderr from ecommerce-api container)
+#   - APM traces (Node.js dd-trace instrumentation)
+#   - Custom metrics via DogStatsD
+#
+# Log collection:
+#   Log forwarding interval: 30 seconds (default Fargate flush interval)
+#   Sensitive field scrubbing: authorization header redacted
+#
+#   NOTE: Application-layer log content is forwarded as-is.
+#   The protect.ts middleware logs raw accessToken cookie values and decoded
+#   JWT payloads to stdout on every authenticated request. These values are
+#   captured in the log stream and forwarded to Datadog within the flush window.
+#   No scrubbing rule is configured for JWT token values in log message bodies.
+#   The redacted_fields configuration covers the HTTP Authorization header
+#   at the WAF layer — not application log message content.
+###############################################################################
+
+version: "2"
+
+init_config: {}
+
+instances: []
+
+logs:
+  - type: file
+    path: "/var/log/datadog/agent.log"
+    service: "datadog-agent"
+    source: "datadog-agent"
+
+# ECS Fargate task metadata integration
+apm_config:
+  enabled: true
+  env: production
+  service: ecommerce-api
+
+# Log processing rules — header-level only
+# Does not scrub JWT token values from log message bodies
+process_config:
+  enabled: true
+  scrub_args: true
+  custom_sensitive_words:
+    - "password"
+    - "secret"
+    - "api_key"
+    # accessToken values in log bodies are not included
+    # protect.ts logs: "Token: Bearer eyJ..." — not matched by these rules

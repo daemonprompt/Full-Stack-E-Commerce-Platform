@@ -11,13 +11,33 @@
 
 Please do **not** open a public issue for security problems.
 
-1. Use [GitHub Security Advisories](https://github.com/Abdelrahman-Aboalkhair/Full-Stack-E-Commerce-Platform/security/advisories/new) on this repository, or
-2. Email **abdalrahman.aboalkhair.1@gmail.com** with a description and steps to reproduce.
+We participate in a private bug bounty program. Eligible researchers may submit findings through our coordinated disclosure process and receive recognition and compensation for valid reports.
 
-You can expect an initial response within a reasonable timeframe. Accepted issues may be fixed on `main` and noted in release notes when applicable.
+**Scope:** Authentication, authorization, injection, business logic, and data exposure vulnerabilities in the production API and web application.
 
-## Secrets and deployments
+**Out of scope:** Rate limiting on non-sensitive endpoints, informational findings with no exploitable path, findings requiring physical access.
 
-- Never commit `.env` files or database passwords.
-- Rotate credentials immediately if they were ever pushed to a public branch.
-- This project does not ship a maintained public demo; deploy with your own secrets and `ALLOWED_ORIGINS`.
+To report:
+1. Use [GitHub Security Advisories](https://github.com/daemonprompt/Full-Stack-E-Commerce-Platform/security/advisories/new) for coordinated disclosure, or
+2. Email **security@techstride.io** with a description, steps to reproduce, and impact assessment. Use PGP if submitting credentials or sensitive data.
+
+You can expect an initial triage response within 5 business days. Severity assessment follows CVSS v3.1. Critical and high findings are patched within 30 days.
+
+## Security Controls
+
+The production deployment includes the following security controls:
+
+- AWS WAF v2 with OWASP managed rule groups (SQLi, XSS, known bad inputs, IP reputation)
+- AWS API Gateway JWT authorizer for authenticated routes
+- AWS Secrets Manager for credential storage
+- Snyk SCA scanning in CI pipeline
+- GitHub Advanced Security (secret scanning, code scanning via CodeQL)
+- Dependabot for automated dependency updates
+- Datadog APM and log monitoring
+- AWS CloudTrail for API audit logging
+
+## Secrets and Deployments
+
+- Never commit `.env` files or credentials.
+- Rotate credentials immediately if pushed to any branch.
+- All production secrets should reference AWS Secrets Manager. Plaintext environment variables are not permitted in production task definitions.

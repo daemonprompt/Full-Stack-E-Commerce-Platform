@@ -1,0 +1,85 @@
+{
+  "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "CodeQL",
+          "version": "2.17.6",
+          "informationUri": "https://codeql.github.com",
+          "rules": [
+            {
+              "id": "js/sql-injection",
+              "name": "SqlInjection",
+              "shortDescription": { "text": "Database query built from user-controlled sources" },
+              "fullDescription": { "text": "Building a database query from user-controlled sources is vulnerable to insertion of malicious code by the user." },
+              "defaultConfiguration": { "level": "error" },
+              "properties": { "tags": ["security", "correctness", "external/cwe/cwe-089"] }
+            },
+            {
+              "id": "js/prototype-pollution",
+              "name": "PrototypePollution",
+              "shortDescription": { "text": "Prototype pollution" },
+              "defaultConfiguration": { "level": "warning" }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "js/sql-injection",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "This query depends on a user-provided value. SQL injection risk via $queryRawUnsafe with string interpolation."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": { "uri": "src/server/src/modules/product/product.controller.ts" },
+                "region": { "startLine": 406, "startColumn": 36, "endLine": 412, "endColumn": 4 }
+              },
+              "logicalLocations": [
+                { "name": "searchProducts", "kind": "function" }
+              ]
+            }
+          ],
+          "relatedLocations": [
+            {
+              "id": 1,
+              "message": { "text": "User-controlled value originates here (req.query.q)" },
+              "physicalLocation": {
+                "artifactLocation": { "uri": "src/server/src/modules/product/product.controller.ts" },
+                "region": { "startLine": 400, "startColumn": 16 }
+              }
+            }
+          ],
+          "suppressions": [],
+          "_note": "This finding is on the REST /api/v1/products/search route. product.routes.ts registers /:id before /search — the search route is unreachable via Express parameter matching. CodeQL performs static taint analysis and does not model Express route registration order. The live SQL injection sink is in product/graphql/resolver.ts:219 (productSearch resolver, $queryRawUnsafe). CodeQL's taint analysis did not trace the GraphQL query argument as a user-controlled source through the Apollo resolver chain."
+        }
+      ],
+      "artifacts": [
+        {
+          "location": { "uri": "src/server/src/modules/product/product.controller.ts" },
+          "length": 12847,
+          "mimeType": "application/typescript"
+        },
+        {
+          "location": { "uri": "src/server/src/modules/product/graphql/resolver.ts" },
+          "length": 8934,
+          "mimeType": "application/typescript",
+          "_note": "Scanned. No findings. $queryRawUnsafe at line 219 uses req-level GraphQL context variable. CodeQL did not classify the GraphQL args.query field as a user-controlled taint source in this scan configuration."
+        }
+      ],
+      "invocations": [
+        {
+          "executionSuccessful": true,
+          "commandLine": "codeql database analyze --format=sarif-latest --output=results.sarif javascript-security-extended",
+          "startTimeUtc": "2026-07-18T02:14:33Z",
+          "endTimeUtc": "2026-07-18T02:31:07Z"
+        }
+      ]
+    }
+  ]
+}

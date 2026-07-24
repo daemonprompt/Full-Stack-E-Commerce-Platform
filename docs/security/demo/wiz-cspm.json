@@ -268,3 +268,247 @@
     }
   }
 }
+,
+{
+  "_source": "wiz-cspm-supplemental",
+  "_description": "Additional CSPM findings from api-gateway.tf, ecs-task.tf, cloudtrail.tf, secrets-manager.tf",
+  "data": {
+    "issues": {
+      "nodes": [
+        {
+          "id": "apigw-users-noauth-001",
+          "status": "OPEN",
+          "severity": "CRITICAL",
+          "type": "CLOUD_CONFIGURATION",
+          "createdAt": "2026-07-18T08:00:00Z",
+          "updatedAt": "2026-07-18T08:00:00Z",
+          "resolvedAt": null,
+          "title": "API Gateway route GET /api/v1/users has no JWT authorizer attached",
+          "description": "The AWS API Gateway v2 HTTP API (ecommerce-http-api) defines a JWT authorizer (ecommerce-jwt-authorizer) applied to authenticated routes. The route GET /api/v1/users is registered in the public_routes group with authorization_type = NONE. This route returns all user records including email addresses, bcrypt password hashes, reset tokens, OAuth IDs, and role assignments. The OpenAPI specification for this endpoint documents bearerAuth as required. The authorizer is not applied. The application layer has no protect middleware on the route handler.",
+          "entity": {
+            "id": "arn:aws:apigatewayv2:us-east-1:123456789012:api/abc123def/routes/GET /api/v1/users",
+            "name": "ecommerce-http-api :: GET /api/v1/users",
+            "type": "API_GATEWAY_ROUTE",
+            "cloudPlatform": "AWS",
+            "region": "us-east-1"
+          },
+          "control": {
+            "id": "WC-AWS-APIGW-011",
+            "name": "API Gateway routes exposing sensitive data should require authorization",
+            "description": "Routes that return PII or account data must have an authorizer configured. Routes registered with authorization_type = NONE bypass all token validation.",
+            "severity": "CRITICAL",
+            "mitreTechnique": "T1530"
+          },
+          "securitySubCategories": [
+            {
+              "title": "AC-3 - Access Enforcement",
+              "category": {
+                "name": "Access Control",
+                "framework": {
+                  "name": "NIST SP 800-53 Rev 5",
+                  "shortName": "NIST-800-53"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "apigw-jwt-sigkey-002",
+          "status": "OPEN",
+          "severity": "HIGH",
+          "type": "CLOUD_CONFIGURATION",
+          "createdAt": "2026-07-18T08:01:00Z",
+          "updatedAt": "2026-07-18T08:01:00Z",
+          "resolvedAt": null,
+          "title": "API Gateway JWT authorizer validates signature but does not enforce signing key source",
+          "description": "The API Gateway JWT authorizer (ecommerce-jwt-authorizer) validates token signature and expiry against the configured Cognito issuer. It does not verify which signing key was used to generate the token. The ECS task definition sets ACCESS_TOKEN_FALLBACK = 'jwt-secret-dev-fallback-2024' as a plaintext environment variable. Tokens signed with this fallback value will pass authorizer validation if the application accepts them at the code level. The authorizer provides no protection against forged tokens signed with the committed fallback secret.",
+          "entity": {
+            "id": "arn:aws:apigatewayv2:us-east-1:123456789012:api/abc123def/authorizers/xyz789",
+            "name": "ecommerce-jwt-authorizer",
+            "type": "API_GATEWAY_AUTHORIZER",
+            "cloudPlatform": "AWS",
+            "region": "us-east-1"
+          },
+          "control": {
+            "id": "WC-AWS-APIGW-014",
+            "name": "API Gateway JWT authorizers should be validated against a single authoritative signing key",
+            "severity": "HIGH",
+            "mitreTechnique": "T1550.001"
+          },
+          "securitySubCategories": []
+        },
+        {
+          "id": "ecs-secrets-mgr-fallback-003",
+          "status": "OPEN",
+          "severity": "CRITICAL",
+          "type": "CLOUD_CONFIGURATION",
+          "createdAt": "2026-07-18T08:02:00Z",
+          "updatedAt": "2026-07-18T08:02:00Z",
+          "resolvedAt": null,
+          "title": "ECS task definition references Secrets Manager for ACCESS_TOKEN_SECRET but retains plaintext ACCESS_TOKEN_FALLBACK in same task",
+          "description": "The ECS task definition 'ecommerce-api:12' includes a secrets block that injects ACCESS_TOKEN_SECRET from AWS Secrets Manager (ecommerce/prod/jwt-access-token-secret). The same task definition also sets ACCESS_TOKEN_FALLBACK = 'jwt-secret-dev-fallback-2024' as a plaintext environment variable. The application in tokenUtils.ts falls back to ACCESS_TOKEN_FALLBACK if ACCESS_TOKEN_SECRET is absent at runtime. Secrets Manager adoption is partial: the migration reference exists but the fallback was not removed. A token forged with the committed fallback value is accepted by the application if ACCESS_TOKEN_SECRET is unset or if the app logic evaluates the fallback path.",
+          "entity": {
+            "id": "arn:aws:ecs:us-east-1:123456789012:task-definition/ecommerce-api:12",
+            "name": "ecommerce-api:12",
+            "type": "ECS_TASK_DEFINITION",
+            "cloudPlatform": "AWS",
+            "region": "us-east-1"
+          },
+          "control": {
+            "id": "WC-AWS-ECS-015",
+            "name": "ECS task definitions should not retain plaintext credential fallbacks alongside Secrets Manager references",
+            "description": "Partial secrets migration where a fallback plaintext value coexists with a Secrets Manager reference creates a degraded-state attack surface. If Secrets Manager injection fails, the application silently falls back to the committed plaintext value.",
+            "severity": "CRITICAL",
+            "mitreTechnique": "T1552.001"
+          },
+          "securitySubCategories": [
+            {
+              "title": "IA-5 - Authenticator Management",
+              "category": {
+                "name": "Identification and Authentication",
+                "framework": {
+                  "name": "NIST SP 800-53 Rev 5",
+                  "shortName": "NIST-800-53"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "cloudtrail-logval-disabled-004",
+          "status": "OPEN",
+          "severity": "MEDIUM",
+          "type": "CLOUD_CONFIGURATION",
+          "createdAt": "2026-07-18T08:03:00Z",
+          "updatedAt": "2026-07-18T08:03:00Z",
+          "resolvedAt": null,
+          "title": "CloudTrail log file validation is disabled",
+          "description": "The CloudTrail trail 'ecommerce-audit-trail' has enable_log_file_validation set to false. Log files delivered to S3 are not cryptographically signed. An attacker who gains S3 write access can modify or delete trail logs without leaving a detectable integrity violation. In combination with the application's unauthenticated DELETE /api/v1/logs endpoint, this means a breach could result in no recoverable audit trail at either the application or infrastructure layer.",
+          "entity": {
+            "id": "arn:aws:cloudtrail:us-east-1:123456789012:trail/ecommerce-audit-trail",
+            "name": "ecommerce-audit-trail",
+            "type": "CLOUDTRAIL_TRAIL",
+            "cloudPlatform": "AWS",
+            "region": "us-east-1"
+          },
+          "control": {
+            "id": "WC-AWS-CT-003",
+            "name": "CloudTrail log file validation should be enabled",
+            "severity": "MEDIUM",
+            "mitreTechnique": "T1565.001"
+          },
+          "securitySubCategories": [
+            {
+              "title": "AU-9 - Protection of Audit Information",
+              "category": {
+                "name": "Audit and Accountability",
+                "framework": {
+                  "name": "NIST SP 800-53 Rev 5",
+                  "shortName": "NIST-800-53"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "cloudtrail-global-events-005",
+          "status": "OPEN",
+          "severity": "MEDIUM",
+          "type": "CLOUD_CONFIGURATION",
+          "createdAt": "2026-07-18T08:04:00Z",
+          "updatedAt": "2026-07-18T08:04:00Z",
+          "resolvedAt": null,
+          "title": "CloudTrail does not capture global service events (IAM, STS)",
+          "description": "The CloudTrail trail 'ecommerce-audit-trail' has include_global_service_events = false. IAM API calls, STS AssumeRole operations, and credential issuance events are not captured. If ECS task credentials are exfiltrated (via SSRF or container compromise) and used externally to call AWS APIs, no CloudTrail record is written for those calls. The forensic trail for credential abuse is absent.",
+          "entity": {
+            "id": "arn:aws:cloudtrail:us-east-1:123456789012:trail/ecommerce-audit-trail",
+            "name": "ecommerce-audit-trail",
+            "type": "CLOUDTRAIL_TRAIL",
+            "cloudPlatform": "AWS",
+            "region": "us-east-1"
+          },
+          "control": {
+            "id": "WC-AWS-CT-001",
+            "name": "CloudTrail should capture global service events",
+            "severity": "MEDIUM",
+            "mitreTechnique": "T1562.008"
+          },
+          "securitySubCategories": [
+            {
+              "title": "AU-2 - Event Logging",
+              "category": {
+                "name": "Audit and Accountability",
+                "framework": {
+                  "name": "NIST SP 800-53 Rev 5",
+                  "shortName": "NIST-800-53"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "datadog-jwt-unmasked-006",
+          "status": "OPEN",
+          "severity": "HIGH",
+          "type": "CLOUD_CONFIGURATION",
+          "createdAt": "2026-07-18T08:05:00Z",
+          "updatedAt": "2026-07-18T08:05:00Z",
+          "resolvedAt": null,
+          "title": "Datadog log collection forwards raw JWT access tokens from application logs",
+          "description": "The Datadog agent sidecar in the ECS task definition collects all container stdout logs and forwards them to Datadog. The application's protect.ts middleware logs the raw accessToken cookie value and the decoded JWT payload on every authenticated request. The Datadog agent configuration (datadog-agent.yml) does not include scrubbing rules for JWT token values in log message bodies. The WAF redacted_fields configuration covers the HTTP Authorization header at the network layer only — it does not apply to application log content. JWT access tokens for all authenticated users are accessible in Datadog log streams within the 30-second flush interval. Any principal with Datadog log viewer access can harvest live session tokens.",
+          "entity": {
+            "id": "arn:aws:ecs:us-east-1:123456789012:task-definition/ecommerce-api:12",
+            "name": "ecommerce-api:12 :: datadog-agent sidecar",
+            "type": "ECS_TASK_DEFINITION",
+            "cloudPlatform": "AWS",
+            "region": "us-east-1"
+          },
+          "control": {
+            "id": "WC-AWS-ECS-LOGS-001",
+            "name": "Log collection agents should scrub credential values from application log content",
+            "description": "Sidecar log collection agents that forward application stdout without scrubbing may inadvertently expose tokens, keys, or credentials written to logs by application code.",
+            "severity": "HIGH",
+            "mitreTechnique": "T1552.003"
+          },
+          "securitySubCategories": [
+            {
+              "title": "AU-3 - Content of Audit Records",
+              "category": {
+                "name": "Audit and Accountability",
+                "framework": {
+                  "name": "NIST SP 800-53 Rev 5",
+                  "shortName": "NIST-800-53"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "waf-ratelimit-scope-007",
+          "status": "OPEN",
+          "severity": "MEDIUM",
+          "type": "CLOUD_CONFIGURATION",
+          "createdAt": "2026-07-18T08:06:00Z",
+          "updatedAt": "2026-07-18T08:06:00Z",
+          "resolvedAt": null,
+          "title": "WAF rate limit rule scoped to /api/v1/auth/signin only — credential endpoints not covered",
+          "description": "The WAF rule 'RateLimit-SignIn' applies a rate limit of 100 requests per 5 minutes to /api/v1/auth/signin only. No rate limit rule covers /api/v1/users, /api/v1/logs, /api/v1/graphql, or other sensitive endpoints. The route GET /api/v1/users returns all 2,847 user records including bcrypt password hashes in a single unauthenticated GET request. A rate limit on this endpoint would not prevent exfiltration (one request is sufficient) but the absence of any coverage reflects incomplete WAF policy design for the full API surface.",
+          "entity": {
+            "id": "arn:aws:wafv2:us-east-1:123456789012:regional/webacl/ecommerce-waf/abc123",
+            "name": "ecommerce-waf :: RateLimit-SignIn",
+            "type": "WAF_RULE",
+            "cloudPlatform": "AWS",
+            "region": "us-east-1"
+          },
+          "control": {
+            "id": "WC-AWS-WAF-012",
+            "name": "WAF rate limiting should cover all endpoints that expose sensitive data or bulk operations",
+            "severity": "MEDIUM",
+            "mitreTechnique": "T1530"
+          },
+          "securitySubCategories": []
+        }
+      ]
+    }
+  }
+}

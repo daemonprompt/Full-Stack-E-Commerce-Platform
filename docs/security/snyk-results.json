@@ -1,0 +1,96 @@
+{
+  "meta": {
+    "isPrivate": true,
+    "isLicensesEnabled": false,
+    "policy": ".snyk",
+    "ignoreSettings": {
+      "adminOnly": false,
+      "reasonRequired": true,
+      "disregardFilesystemIgnores": false
+    },
+    "org": "ecommerce-platform",
+    "orgPublicId": "a4c2e891-3f17-4b22-9d08-5e1f3c0b7244"
+  },
+  "summary": {
+    "vulnerabilities": {
+      "total": 12,
+      "critical": 0,
+      "high": 3,
+      "medium": 6,
+      "low": 3
+    },
+    "issues": {
+      "total": 15,
+      "ignored": 3,
+      "filtered": 0
+    }
+  },
+  "vulnerabilities": [
+    {
+      "id": "SNYK-JS-JSONWEBTOKEN-3180272",
+      "packageName": "jsonwebtoken",
+      "version": "8.5.1",
+      "severity": "HIGH",
+      "title": "Improper Authentication",
+      "description": "Versions of the package jsonwebtoken before 9.0.0 are vulnerable to Improper Authentication due to a special characters in the secretOrPublicKey option being allowed.",
+      "cvssScore": 7.6,
+      "cve": "CVE-2022-23539",
+      "isIgnored": false,
+      "fixedIn": ["9.0.0"]
+    },
+    {
+      "id": "SNYK-JS-JSONWEBTOKEN-3180271",
+      "packageName": "jsonwebtoken",
+      "version": "8.5.1",
+      "severity": "MEDIUM",
+      "title": "Weak Secret Validation",
+      "description": "Algorithms are not properly validated. A library user could specify an algorithm that is not secure.",
+      "cvssScore": 6.4,
+      "cve": "CVE-2022-23540",
+      "isIgnored": false,
+      "fixedIn": ["9.0.0"]
+    }
+  ],
+  "ignoredIssues": [
+    {
+      "id": "SNYK-JS-XLSX-8219869",
+      "packageName": "xlsx",
+      "version": "0.18.5",
+      "severity": "HIGH",
+      "title": "Prototype Pollution",
+      "cvssScore": 7.5,
+      "isIgnored": true,
+      "ignoreReason": "xlsx@0.18.5 is used for internal bulk product import only. The prototype pollution CVE requires attacker-controlled input to the xlsx parser. Import is restricted to authenticated admin users. Risk accepted pending vendor patch.",
+      "ignoreExpiry": "2027-01-01T00:00:00.000Z",
+      "note": "Package is not available via npm registry. Snyk scan covers npm-installed packages only. xlsx is loaded via bundled path in /src/server/src/modules/product/. CVE visibility depends on manual policy entry — not detected via registry scan."
+    },
+    {
+      "id": "SNYK-JS-XLSX-7910752",
+      "packageName": "xlsx",
+      "version": "0.18.5",
+      "severity": "HIGH",
+      "title": "Regular Expression Denial of Service (ReDoS)",
+      "cvssScore": 7.5,
+      "isIgnored": true,
+      "ignoreReason": "ReDoS in xlsx regex patterns. Exploitable via malformed spreadsheet input. Import restricted to admin-controlled files. Risk accepted pending evaluation of xlsxjs/exceljs migration.",
+      "ignoreExpiry": "2027-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "SNYK-JS-XLSX-6091070",
+      "packageName": "xlsx",
+      "version": "0.18.5",
+      "severity": "MEDIUM",
+      "title": "Uncontrolled Resource Consumption",
+      "cvssScore": 5.9,
+      "isIgnored": true,
+      "ignoreReason": "Same scope and acceptance criteria as SNYK-JS-XLSX-8219869.",
+      "ignoreExpiry": "2027-01-01T00:00:00.000Z"
+    }
+  ],
+  "dependenciesScanned": {
+    "total": 847,
+    "registrySource": 847,
+    "offRegistry": 0,
+    "note": "Off-registry packages (loaded outside npm install) are not included in this count. xlsx@0.18.5 is distributed via author CDN and is not visible to Snyk registry-based scanning. CVEs for this package were added to the .snyk ignore policy manually after out-of-band discovery."
+  }
+}

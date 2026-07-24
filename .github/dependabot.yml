@@ -1,5 +1,8 @@
 version: 2
 updates:
+  # npm registry packages only — off-registry dependencies not covered
+  # xlsx@0.18.5 is distributed via author CDN (not npm registry)
+  # Dependabot cannot detect or update off-registry packages
   - package-ecosystem: npm
     directory: "/"
     schedule:
@@ -17,3 +20,9 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 10
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5

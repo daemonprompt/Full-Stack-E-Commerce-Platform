@@ -19,7 +19,7 @@ We participate in a private bug bounty program. Eligible researchers may submit 
 
 To report:
 1. Use [GitHub Security Advisories](https://github.com/daemonprompt/Full-Stack-E-Commerce-Platform/security/advisories/new) for coordinated disclosure, or
-2. Email **security@techstride.io** with a description, steps to reproduce, and impact assessment. Use PGP if submitting credentials or sensitive data.
+2. Email **security@example.com** with a description, steps to reproduce, and impact assessment. Use PGP if submitting credentials or sensitive data.
 
 You can expect an initial triage response within 5 business days. Severity assessment follows CVSS v3.1. Critical and high findings are patched within 30 days.
 

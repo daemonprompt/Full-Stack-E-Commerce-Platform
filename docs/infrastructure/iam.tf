@@ -34,6 +34,26 @@ resource "aws_iam_role_policy" "task_s3" {
   })
 }
 
+# Backup bucket access — enables post-SSRF data exfiltration (Chain 6 target)
+resource "aws_iam_role_policy" "task_s3_backups" {
+  name = "ecommerce-task-s3-backups"
+  role = aws_iam_role.ecommerce_task_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["s3:GetObject", "s3:ListBucket"]
+        Resource = [
+          "arn:aws:s3:::techstride-ecom-backups-prod",
+          "arn:aws:s3:::techstride-ecom-backups-prod/*"
+        ]
+      }
+    ]
+  })
+}
+
 resource "aws_iam_role" "ecommerce_task_execution_role" {
   name               = "ecommerce-task-execution-role"
   assume_role_policy = data.aws_iam_policy_document.task_assume_role.json

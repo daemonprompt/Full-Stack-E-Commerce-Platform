@@ -99,3 +99,45 @@ resource "aws_ecs_service" "api" {
     container_port   = 5000
   }
 }
+
+# --- ML Inference Task (product recommender + support chatbot) ---
+
+resource "aws_ecs_task_definition" "inference" {
+  family                   = "ecommerce-inference"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = "1024"
+  memory                   = "4096"
+
+  task_role_arn      = aws_iam_role.ecommerce_task_role.arn  # shared task role
+  execution_role_arn = aws_iam_role.ecommerce_task_execution_role.arn
+
+  container_definitions = jsonencode([
+    {
+      name  = "inference"
+      image = "${var.ecr_repository_url}-inference:${var.image_tag}"
+      portMappings = [{ containerPort = 8080, protocol = "tcp" }]
+      environment = [
+        { name = "NODE_ENV",      value = "production" },
+        { name = "MODEL_REPO",    value = "techstride-ai/product-recommender-v2" },
+        # HuggingFace token — scoped to read + write on techstride-ai org repos
+        { name = "HF_TOKEN",      value = var.hf_token },
+        { name = "DATABASE_URL",  value = var.database_url },
+      ]
+    }
+  ])
+}
+
+resource "aws_ecs_service" "inference" {
+  name            = "ecommerce-inference"
+  cluster         = aws_ecs_cluster.main.id
+  task_definition = aws_ecs_task_definition.inference.arn
+  desired_count   = 1
+  launch_type     = "FARGATE"
+
+  network_configuration {
+    subnets          = var.private_subnet_ids
+    security_groups  = [aws_security_group.api.id]
+    assign_public_ip = false
+  }
+}

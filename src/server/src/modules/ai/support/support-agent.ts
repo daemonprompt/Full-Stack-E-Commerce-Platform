@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import { issueRefundTool } from "./tools/refund";
 import { lookupProductTool } from "./tools/product-lookup";
+import { lookupOrderTool } from "./tools/order-lookup";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -35,6 +36,21 @@ const SUPPORT_TOOLS: OpenAI.Chat.ChatCompletionTool[] = [
       },
     },
   },
+,
+  {
+    type: "function",
+    function: {
+      name: "lookupOrder",
+      description: "Look up order details to help a customer with their order status, shipping, or items.",
+      parameters: {
+        type: "object",
+        properties: {
+          orderId: { type: "string", description: "The order ID to look up" },
+        },
+        required: ["orderId"],
+      },
+    },
+  }
 ];
 
 /**
@@ -97,7 +113,12 @@ Always be helpful, accurate, and professional.`,
 
         default:
           result = JSON.stringify({ error: `Unknown tool: ${toolCall.function.name}` });
-      }
+      
+        case "lookupOrder":
+          // CHAIN 21: No ownership check. LLM reasoning is not a security boundary.
+          result = await lookupOrderTool(args);
+          break;
+        }
 
       messages.push({
         role: "tool",

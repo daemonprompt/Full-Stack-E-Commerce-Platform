@@ -1,0 +1,72 @@
+{
+  "tool": "Escape",
+  "version": "3.4.1",
+  "scan_type": "GraphQL DAST",
+  "scan_date": "2026-07-29T10:15:00Z",
+  "target": "https://staging.techstride.internal/api/v1/graphql",
+  "commit": "7eed1c0e",
+  "branch": "demo-all-chains",
+  "findings": [
+    {
+      "id": "ESC-001",
+      "severity": "HIGH",
+      "title": "GraphQL introspection enabled in production",
+      "description": "The GraphQL endpoint responds to introspection queries, exposing the full schema including type definitions, field names, mutations, and subscription channels. Attackers can use this to enumerate hidden mutations and admin-only subscription types.",
+      "endpoint": "POST /api/v1/graphql",
+      "evidence": "Query: {__schema{types{name fields{name}}}} returned 847 types including admin-only types: InventoryAlert, RevenueUpdate, SupportEscalation, FraudFlag",
+      "remediation": "Disable introspection in production. Set introspection: false in Apollo Server config.",
+      "cwe": "CWE-200",
+      "chain_correlation": "Chain 19 -- introspection reveals subscription channel names (INVENTORY_ALERT, ORDER_FRAUD_FLAG, etc.). Escape finds the schema. Does not probe WebSocket transport."
+    },
+    {
+      "id": "ESC-002",
+      "severity": "HIGH",
+      "title": "GraphQL subscriptions endpoint exposed",
+      "description": "GraphQL subscriptions are enabled and the subscription schema is accessible via introspection. Subscription types include admin-privileged event streams: orderFraudFlag (includes fraud detection rules and risk scores), supportEscalation (includes customer PII and escalation reasoning).",
+      "endpoint": "POST /api/v1/graphql (subscription types via introspection)",
+      "remediation": "Implement subscription authorization. Validate credentials on WebSocket connection establishment via onConnect handler.",
+      "cwe": "CWE-862",
+      "chain_correlation": "Chain 19 surface identified. Escape tests subscriptions over HTTP introspection only. WebSocket auth bypass not probed -- structural gap in GraphQL HTTP DAST methodology."
+    },
+    {
+      "id": "ESC-003",
+      "severity": "HIGH",
+      "title": "GraphQL SQL injection -- productSearch resolver",
+      "description": "The productSearch query interpolates the query argument directly into a $queryRawUnsafe call. Payload: productSearch(query: "' OR 1=1--") returns all products. Full database extraction confirmed.",
+      "endpoint": "POST /api/v1/graphql",
+      "evidence": "Payload: {productSearch(query: "' OR '1'='1"){id name price}} -- returned 4,847 products including draft and admin-only listings",
+      "cwe": "CWE-89",
+      "chain_correlation": "Chain 2"
+    },
+    {
+      "id": "ESC-004",
+      "severity": "MEDIUM",
+      "title": "GraphQL query depth limit not enforced",
+      "description": "Deeply nested queries accepted without depth limit. Enables GraphQL DoS via query complexity amplification.",
+      "endpoint": "POST /api/v1/graphql",
+      "cwe": "CWE-400",
+      "chain_correlation": "None -- denial of service finding, no chain correlation"
+    },
+    {
+      "id": "ESC-005",
+      "severity": "MEDIUM",
+      "title": "GraphQL field suggestions enabled",
+      "description": "On misspelled field names, GraphQL returns 'Did you mean X?' suggestions, leaking valid field names even when introspection is partially restricted.",
+      "cwe": "CWE-209"
+    }
+  ],
+  "chain_19_analysis": {
+    "finding": "ESC-001, ESC-002 (partial)",
+    "gap": "Escape identifies the subscription schema and admin-privileged event types via introspection. It does not test the WebSocket transport path. The auth bypass (HTTP middleware does not apply to WebSocket upgrade) is structurally invisible to HTTP-based GraphQL DAST. To detect Chain 19, a scanner would need to: (1) establish a WebSocket connection to /graphql without credentials, (2) send a subscription operation, (3) verify that admin events are received. Escape tests over HTTP only.",
+    "chain_19_detected": false,
+    "chain_19_partial": true
+  },
+  "summary": {
+    "total_findings": 5,
+    "high": 3,
+    "medium": 2,
+    "low": 0,
+    "graphql_specific_findings": 5,
+    "chain_19_detected": false
+  }
+}

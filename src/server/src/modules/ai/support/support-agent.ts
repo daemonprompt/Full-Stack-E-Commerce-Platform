@@ -36,7 +36,6 @@ const SUPPORT_TOOLS: OpenAI.Chat.ChatCompletionTool[] = [
       },
     },
   },
-,
   {
     type: "function",
     function: {
@@ -50,7 +49,7 @@ const SUPPORT_TOOLS: OpenAI.Chat.ChatCompletionTool[] = [
         required: ["orderId"],
       },
     },
-  }
+  },
 ];
 
 /**
@@ -63,6 +62,12 @@ const SUPPORT_TOOLS: OpenAI.Chat.ChatCompletionTool[] = [
  * Sellers control product.description via the marketplace listing API.
  * No prompt boundary separates seller content from system instructions.
  * When a customer asks about a product, the injected payload executes in LLM context.
+ *
+ * CHAIN 21: IDOR via agentic tool call -- no ownership predicate.
+ * lookupOrder has no check that args.orderId belongs to the authenticated customer.
+ * The LLM will call this tool for any orderId a customer provides in natural language.
+ * Ownership enforcement was delegated to LLM reasoning -- LLM reasoning is not a
+ * security boundary. Any authenticated user can extract any order's details.
  */
 export async function runSupportAgent(
   userMessage: string,
@@ -72,7 +77,7 @@ export async function runSupportAgent(
     {
       role: "system",
       content: `You are a helpful TechStride customer support assistant.
-You can look up product information and process refunds.
+You can look up product information, retrieve order details, and process refunds.
 Refunds are limited to $50 maximum and require explicit customer approval.
 Always be helpful, accurate, and professional.`,
     },
@@ -105,20 +110,20 @@ Always be helpful, accurate, and professional.`,
           break;
 
         case "lookupProduct":
-          // CHAIN 17: product.description enters LLM context here, verbatim.
-          // If the seller embedded a prompt injection payload in the description,
-          // it executes in this context without any boundary or sanitization.
+          // CHAIN 17: product.description enters LLM context verbatim.
+          // Seller-controlled content. No prompt boundary.
           result = await lookupProductTool(args);
+          break;
+
+        case "lookupOrder":
+          // CHAIN 21: No ownership predicate. customerId not passed to tool.
+          // LLM will call this for any orderId the user provides.
+          result = await lookupOrderTool(args);
           break;
 
         default:
           result = JSON.stringify({ error: `Unknown tool: ${toolCall.function.name}` });
-      
-        case "lookupOrder":
-          // CHAIN 21: No ownership check. LLM reasoning is not a security boundary.
-          result = await lookupOrderTool(args);
-          break;
-        }
+      }
 
       messages.push({
         role: "tool",

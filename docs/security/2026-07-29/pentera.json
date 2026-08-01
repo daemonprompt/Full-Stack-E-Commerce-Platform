@@ -1,0 +1,84 @@
+{
+  "tool": "Pentera",
+  "version": "9.2.1",
+  "integration": "Wiz Security Graph attack paths used as prioritization input",
+  "scan_type": "Autonomous Penetration Testing",
+  "scan_date": "2026-07-29T11:00:00Z",
+  "target_scope": "https://staging.techstride.internal",
+  "commit": "7eed1c0e",
+  "branch": "demo-all-chains",
+  "exploitation_confirmed": [
+    {
+      "id": "PENT-001",
+      "severity": "CRITICAL",
+      "title": "SQL Injection -- Confirmed RCE-class data extraction",
+      "type": "Active Exploitation",
+      "endpoint": "POST /api/v1/graphql",
+      "exploit": "UNION-based SQL injection via productSearch query argument. Extracted: users table (12,847 rows including hashed passwords, emails, addresses), orders table (47,293 rows including payment method data), admin_config table.",
+      "proof_of_exploitation": "Extracted admin user record: id=00000000-0000-0000-0000-000000000001, email=admin@techstride.io, passwordHash=[redacted]",
+      "cvss": 9.8,
+      "chain_correlation": "Chain 2"
+    },
+    {
+      "id": "PENT-002",
+      "severity": "CRITICAL",
+      "title": "SSRF -- ECS Task Credentials Extracted",
+      "type": "Active Exploitation",
+      "endpoint": "POST /api/v1/webhook/ping",
+      "exploit": "SSRF via unchecked url parameter. Probed http://169.254.170.2/v2/credentials/[task-role-id]. AWS ECS task credentials extracted: AccessKeyId, SecretAccessKey, SessionToken. Used credentials to list S3 buckets and retrieve backup files.",
+      "proof_of_exploitation": "AccessKeyId: ASIA[redacted] retrieved. S3 listing: s3://techstride-ecom-backups-prod -- 2,847 objects. Retrieved: backups/2026-07-28/full-db-dump.sql.gz (14.2GB)",
+      "cvss": 9.1,
+      "chain_correlation": "Chain 6"
+    },
+    {
+      "id": "PENT-003",
+      "severity": "HIGH",
+      "title": "Mass Assignment -- Privilege Escalation to SUPERADMIN",
+      "type": "Active Exploitation",
+      "endpoint": "PUT /api/v1/users/settings",
+      "exploit": "Authenticated request (regular user token) with body {"role":"SUPERADMIN"}. Server responded with updated user object: {"role":"SUPERADMIN"}. Subsequently accessed admin-only endpoints: GET /api/v1/admin/users (full user table), GET /api/v1/admin/revenue (all financial data).",
+      "proof_of_exploitation": "Response after PUT: {"id":"[user-id]","email":"attacker@test.com","role":"SUPERADMIN","updatedAt":"2026-07-29T11:04:22Z"}",
+      "cvss": 8.8,
+      "chain_correlation": "Chain 18"
+    },
+    {
+      "id": "PENT-004",
+      "severity": "HIGH",
+      "title": "JWT Signing Secret Exposed -- Token Forgery",
+      "type": "Active Exploitation",
+      "exploit": "Hardcoded fallback secret 'jwt-secret-dev-fallback-2024' used to forge admin JWT. Forged token accepted by all protected endpoints.",
+      "cvss": 8.1,
+      "chain_correlation": "Chain 1"
+    }
+  ],
+  "not_exploited": [
+    {
+      "chains": [7, 14, 16, 17, 19, 20, 21, 22],
+      "reason": "No attack modules available for these finding classes.",
+      "detail": {
+        "7": "Prompt injection via product review requires AI processing step. Pentera cannot model LLM context propagation.",
+        "14": "LLM jailbreak requires conversational multi-turn attack. No Pentera attack module for LLM system prompt bypass.",
+        "16": "trust_remote_code=True attack requires CI compromise + HuggingFace model push. Not an HTTP attack surface.",
+        "17": "Indirect prompt injection via database-stored product description. Pentera tests HTTP parameters, not stored semantic content.",
+        "19": "GraphQL subscription WebSocket auth bypass. Pentera's GraphQL module tests over HTTP. WebSocket transport not covered.",
+        "20": "Subdomain takeover requires external DNS analysis + CloudFront distribution claim. Not in-scope for API penetration test.",
+        "21": "IDOR via LLM reasoning. Attack surface is natural language, not HTTP parameters. No Pentera module.",
+        "22": "Vector embedding cross-tenant data leak. Requires understanding of embedding space semantics. No attack module."
+      }
+    }
+  ],
+  "wiz_integration": {
+    "attack_paths_imported": 3,
+    "paths_validated": 2,
+    "paths_not_exploitable": 1,
+    "note": "Wiz Security Graph provided 3 attack paths as prioritization input. Pentera confirmed 2 as actively exploitable (SSRF->ECS->S3 and mass-assignment->admin). 1 path (IAM role accumulation) was confirmed as a posture risk but not directly exploited in this engagement scope."
+  },
+  "summary": {
+    "exploitation_confirmed": 4,
+    "critical": 2,
+    "high": 2,
+    "llm_required_chains_detected": 0,
+    "total_llm_required_chains": 8,
+    "coverage_gap_note": "Pentera confirmed all tool-findable chains with active exploitation evidence. Zero coverage on LLM-required chains (7, 14, 16, 17, 19, 20, 21, 22). These chains require LLM reasoning to surface -- they are not detectable by pattern-matching or active exploitation tooling."
+  }
+}

@@ -40,19 +40,36 @@
       "rule_id": "wiz.sast.react.dangerouslysetinnerhtml-unsanitized",
       "remediation": "Sanitize HTML with DOMPurify before rendering, or avoid dangerouslySetInnerHTML.",
       "false_positive_risk": "LOW"
+    },
+    {
+      "id": "WCODE-2895",
+      "type": "sast",
+      "severity": "HIGH",
+      "title": "Mass assignment -- req.body spread into ORM update without allowlist",
+      "description": "PUT /api/v1/users/settings spreads the raw request body into prisma.user.update({ data: { ...req.body } }) with no field allowlist. An authenticated user can send {\"role\":\"SUPERADMIN\"} and escalate privileges. All Prisma schema fields for the User model are assignable.",
+      "file": "src/server/src/modules/users/users.controller.ts",
+      "line": 67,
+      "rule_id": "wiz.sast.nodejs.mass-assignment-orm",
+      "remediation": "Use an explicit allowlist: prisma.user.update({ data: { displayName: req.body.displayName, preferences: req.body.preferences } }). Never spread req.body directly into ORM operations.",
+      "false_positive_risk": "LOW",
+      "chain_correlation": "Chain 18 -- confirmed exploitable by Pentera (PENT-003)"
     }
   ],
   "coverage": {
     "files_scanned": 87,
     "sast_rules_applied": 1847,
     "secrets_rules_applied": 412,
-    "files_with_findings": 3,
-    "ml_pipeline_files_scanned": ["scripts/ml/load_model.py", "scripts/rag/embed.py", "scripts/rag/ingest.py"],
+    "files_with_findings": 4,
+    "ml_pipeline_files_scanned": [
+      "scripts/ml/load_model.py",
+      "scripts/rag/embed.py",
+      "scripts/rag/ingest.py"
+    ],
     "ml_pipeline_findings": 0
   },
   "summary": {
-    "total_findings": 3,
-    "high": 1,
+    "total_findings": 4,
+    "high": 2,
     "medium": 2,
     "low": 0
   },

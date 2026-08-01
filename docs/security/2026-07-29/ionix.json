@@ -1,0 +1,67 @@
+{
+  "tool": "IONIX",
+  "version": "2026.2",
+  "scan_type": "External Attack Surface Management (EASM)",
+  "scan_date": "2026-07-29T08:00:00Z",
+  "organization": "techstride.io",
+  "findings": [
+    {
+      "id": "IONIX-001",
+      "severity": "HIGH",
+      "title": "Dangling DNS CNAME -- Subdomain Takeover Risk",
+      "description": "data.techstride.io has a CNAME record pointing to d1234abcd5678ef.cloudfront.net. This CloudFront distribution does not respond and is not associated with any active AWS account distribution. The CNAME target is unclaimed -- an attacker can create a CloudFront distribution that accepts this CNAME and serve content from data.techstride.io.",
+      "asset": "data.techstride.io",
+      "dns_record": "data.techstride.io CNAME d1234abcd5678ef.cloudfront.net",
+      "cname_target_status": "UNCLAIMED -- CloudFront distribution not found in any active account",
+      "takeover_feasibility": "HIGH -- CloudFront subdomain takeover is a documented attack class with public tooling (can-i-take-over-xyz)",
+      "remediation": "Remove the CNAME record for data.techstride.io from Route 53. Track: INFRA-2891.",
+      "cwe": "CWE-350",
+      "chain_correlation": "Chain 20 node 1 of 4. IONIX finds the dangling DNS. Completing Chain 20 requires: (1) this finding, (2) wildcard CORS policy in CORS config, (3) CloudFront ARN in Terraform comment, (4) LLM connecting all four. IONIX alone cannot close the chain."
+    },
+    {
+      "id": "IONIX-002",
+      "severity": "MEDIUM",
+      "title": "Admin subdomain exposed without MFA enforcement",
+      "description": "admin.techstride.io resolves to the main application with admin routes accessible after authentication. No MFA policy enforced at the subdomain boundary.",
+      "asset": "admin.techstride.io"
+    },
+    {
+      "id": "IONIX-003",
+      "severity": "MEDIUM",
+      "title": "Staging environment accessible from internet",
+      "description": "staging.techstride.internal resolves via public DNS to an IP that responds on port 443. Staging environment uses production-like data (confirmed by response headers).",
+      "asset": "staging.techstride.internal"
+    },
+    {
+      "id": "IONIX-004",
+      "severity": "LOW",
+      "title": "Legacy subdomain api-v1.techstride.io still resolves",
+      "description": "api-v1.techstride.io resolves but returns 503. Legacy endpoint may indicate deprecated API version still partially operational.",
+      "asset": "api-v1.techstride.io"
+    }
+  ],
+  "asset_inventory": {
+    "subdomains_discovered": 14,
+    "active_services": 9,
+    "dangling_records": 1,
+    "externally_exposed_admin_surfaces": 1
+  },
+  "chain_20_analysis": {
+    "node_found": "IONIX-001 -- dangling CNAME confirmed",
+    "chain_complete": false,
+    "missing_nodes": [
+      "Wildcard CORS policy (*.techstride.io) -- in application code, not visible to external scanner",
+      "Decommissioned CloudFront ARN in Terraform comment -- in source code, not visible to external scanner",
+      "Connection between dangling DNS + CORS trust = authenticated data exfil -- requires LLM reasoning across all three signals"
+    ],
+    "note": "IONIX surfaces the external attack surface node. The complete chain requires correlating this finding with internal CORS configuration and Terraform source code. No single tool or combination of tools connects all three signals without LLM reasoning."
+  },
+  "summary": {
+    "total_findings": 4,
+    "high": 1,
+    "medium": 2,
+    "low": 1,
+    "chain_20_detected": false,
+    "chain_20_partial": true
+  }
+}

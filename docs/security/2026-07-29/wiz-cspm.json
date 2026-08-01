@@ -1,0 +1,70 @@
+{
+  "scan_id": "wiz-cspm-20260729-techstride-prod",
+  "account_id": "aws-techstride-prod",
+  "scan_date": "2026-07-29T08:55:12Z",
+  "scan_type": "Cloud Security Posture Management -- continuous",
+  "findings": [
+    {
+      "id": "WCSPM-4471",
+      "severity": "CRITICAL",
+      "title": "ECS task role has wildcard S3 permissions",
+      "description": "Task role 'ecommerce-task-role' grants s3:* on all buckets. Violates least-privilege principle. Overly broad S3 permissions are exploitable via SSRF or container breakout.",
+      "resource": "arn:aws:iam::123456789012:role/ecommerce-task-role",
+      "policy": "task_s3_backups",
+      "affected_actions": ["s3:*"],
+      "remediation": "Restrict to specific actions (s3:GetObject, s3:PutObject) on specific bucket ARNs.",
+      "framework": ["NIST-800-53:AC-6", "CIS-AWS-1.4:1.16"],
+      "chain_correlation": "Related to Chain 6 and Chain 16 blast radius. Posture finding only -- attack chain not modeled."
+    },
+    {
+      "id": "WCSPM-4472",
+      "severity": "HIGH",
+      "title": "ECS task environment variable contains potential secret (HF_TOKEN)",
+      "description": "ECS task definition 'techstride-inference' contains environment variable 'HF_TOKEN' in plaintext. Secrets in task definition environment variables are visible in CloudTrail, ECS DescribeTaskDefinition API, and console. Should be stored in AWS Secrets Manager.",
+      "resource": "arn:aws:ecs:us-east-1:123456789012:task-definition/techstride-inference:7",
+      "remediation": "Store HF_TOKEN in AWS Secrets Manager. Reference via secrets block in task definition.",
+      "framework": ["NIST-800-53:SC-28", "PCI-DSS-v4:3.4"],
+      "rule_id": "aws-ecs-task-definition-secret-env-var",
+      "chain_correlation": "WCSPM-4472 identifies the credential exposure posture. The downstream attack -- CI compromise exfiltrates HF_TOKEN, attacker pushes malicious modeling_product_recommender.py, trust_remote_code=True executes it on restart -- is a multi-system attack chain not modeled by CSPM posture evaluation."
+    },
+    {
+      "id": "WCSPM-4473",
+      "severity": "HIGH",
+      "title": "S3 bucket has public-read ACL",
+      "description": "S3 bucket 'techstride-export-results-prod' is configured with ACL public-read. All objects are accessible without authentication. Export files containing customer order data are exposed.",
+      "resource": "arn:aws:s3:::techstride-export-results-prod",
+      "remediation": "Remove public-read ACL. Serve exports via presigned URLs with TTL.",
+      "framework": ["CIS-AWS-1.4:2.1.5", "NIST-800-53:AC-3"],
+      "chain_correlation": "R-Chain 8 artifact. UUID job IDs remediated the BOLA but public S3 ACL left all exports accessible via direct URL."
+    },
+    {
+      "id": "WCSPM-4474",
+      "severity": "HIGH",
+      "title": "ECS task role accumulates secretsmanager:GetSecretValue across multiple secrets",
+      "description": "Task role 'ecommerce-task-role' has been granted secretsmanager:GetSecretValue on 4 secrets (redis-auth-token, supplier-hmac-secret, stripe-secret-key, db-connection-string) across separate IAM policy updates. Role blast radius grows with each sprint.",
+      "resource": "arn:aws:iam::123456789012:role/ecommerce-task-role",
+      "remediation": "Implement per-service IAM roles. Each ECS service should have a task role scoped only to the secrets it requires.",
+      "framework": ["NIST-800-53:AC-6", "CIS-AWS-1.4:1.16"],
+      "chain_correlation": "Architectural posture finding. Corresponds to the systemic pattern documented in demo-all-chains-2: SSRF-accessible ECS credentials accumulate Secrets Manager permissions with each remediation sprint. Wiz CSPM correctly identifies the policy accumulation. The attack chain -- Chain 6 SSRF -> ECS creds -> GetSecretValue on any of these 4 secrets -- is not surfaced as a connected finding."
+    },
+    {
+      "id": "WCSPM-4475",
+      "severity": "MEDIUM",
+      "title": "JWT secret uses weak default value path",
+      "description": "IaC for ECS task definition references ACCESS_TOKEN_SECRET with a fallback pattern that may resolve to a predictable value if the environment variable is unset in some deployments.",
+      "resource": "arn:aws:ecs:us-east-1:123456789012:task-definition/techstride-api:12",
+      "remediation": "Enforce ACCESS_TOKEN_SECRET via Secrets Manager. Remove fallback value in application code.",
+      "framework": ["NIST-800-53:IA-5"],
+      "chain_correlation": "Chain 1 surface."
+    }
+  ],
+  "summary": {
+    "total_findings": 5,
+    "critical": 1,
+    "high": 3,
+    "medium": 1,
+    "low": 0,
+    "chain16_detected": false,
+    "chain16_note": "WCSPM-4472 correctly flags HF_TOKEN as a secrets posture violation (HIGH). CSPM evaluates individual resource configurations against policy rules. The supply chain attack -- CI compromise exfiltrates HF_TOKEN, malicious model pushed to HuggingFace, trust_remote_code=True executes payload on next inference container restart -- spans GitHub Actions, an external ML registry, and ECS runtime. This cross-system attack chain is outside the scope of cloud posture management tools. Posture finding is real and correct. Attack chain is invisible to the tool."
+  }
+}

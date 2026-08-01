@@ -1,0 +1,66 @@
+{
+  "vulnerabilities": [
+    {
+      "id": "SNYK-JS-JSONWEBTOKEN-3180026",
+      "pkgName": "jsonwebtoken",
+      "pkgVersion": "8.5.1",
+      "severity": "high",
+      "cvssScore": 7.6,
+      "title": "Improper Authentication",
+      "description": "jsonwebtoken versions prior to 9.0.0 allow attackers to bypass authentication by supplying tokens signed with an unexpected algorithm, including the 'none' algorithm.",
+      "fixedIn": "9.0.0",
+      "from": ["Full-Stack-E-Commerce-Platform@1.0.0", "jsonwebtoken@8.5.1"],
+      "isUpgradable": true,
+      "isPatchable": false,
+      "CVSSv3": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:L"
+    },
+    {
+      "id": "SNYK-JS-AXIOS-6144788",
+      "pkgName": "axios",
+      "pkgVersion": "1.6.0",
+      "severity": "medium",
+      "cvssScore": 6.5,
+      "title": "Server-side Request Forgery (SSRF)",
+      "description": "Axios 1.6.0 is vulnerable to SSRF when URLs are constructed from user-controlled input without validation.",
+      "fixedIn": "1.6.5",
+      "from": ["Full-Stack-E-Commerce-Platform@1.0.0", "axios@1.6.0"],
+      "isUpgradable": true,
+      "isPatchable": false,
+      "CVSSv3": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N"
+    },
+    {
+      "id": "SNYK-JS-SOCKETIO-5765577",
+      "pkgName": "socket.io",
+      "pkgVersion": "4.6.1",
+      "severity": "medium",
+      "cvssScore": 5.3,
+      "title": "Uncaught Exception",
+      "description": "socket.io before 4.6.2 is vulnerable to unhandled exception via crafted handshake packet.",
+      "fixedIn": "4.6.2",
+      "from": ["Full-Stack-E-Commerce-Platform@1.0.0", "socket.io@4.6.1"],
+      "isUpgradable": true,
+      "isPatchable": false,
+      "CVSSv3": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L"
+    }
+  ],
+  "python": {
+    "vulnerabilities": [],
+    "dependencyCount": 12,
+    "packageManager": "pip",
+    "note": "transformers==4.41.2 scanned. No known CVEs at this version. trust_remote_code=True is a configuration parameter, not a library vulnerability. No CVE-anchored finding generated."
+  },
+  "summary": {
+    "totalIssues": 3,
+    "high": 1,
+    "medium": 2,
+    "low": 0,
+    "dependencyCount": 847,
+    "packageManager": "npm"
+  },
+  "_meta": {
+    "scan_date": "2026-07-29T09:22:11Z",
+    "commit": "7eed1c0e",
+    "branch": "demo-all-chains",
+    "chain16_note": "scripts/ml/load_model.py uses trust_remote_code=True. No CVE exists for this pattern. HuggingFace transformers library is not vulnerable -- trust_remote_code is an opt-in feature. Snyk SCA requires a CVE or advisory to generate a finding. This attack class has no CVE anchor and is invisible to dependency scanning."
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "scan_id": "wiz-graph-20260729-techstride-prod",
+  "account_id": "aws-techstride-prod",
+  "scan_date": "2026-07-29T08:55:12Z",
+  "scan_type": "Security Graph -- Attack Path Analysis",
+  "findings": [
+    {
+      "id": "WIZ-PATH-001",
+      "severity": "CRITICAL",
+      "title": "Toxic combination: publicly exposed ECS task with overpermissive IAM role accessing sensitive S3 data",
+      "path": [
+        "Internet -> ALB (public) -> ECS task (techstride-api)",
+        "ECS task role (ecommerce-task-role) -> s3:* on techstride-ecom-backups-prod",
+        "S3 bucket contains: customer PII, order history, payment tokens"
+      ],
+      "attack_narrative": "An attacker who compromises the API container (via SSRF, RCE, or dependency exploit) can use the task role to read all customer data from the backup bucket.",
+      "remediation": "Restrict s3:* to specific actions. Separate backup access to a dedicated role not attached to the API task.",
+      "related_chains": ["Chain 6 -- SSRF provides the initial access vector to reach this path"]
+    },
+    {
+      "id": "WIZ-PATH-002",
+      "severity": "HIGH",
+      "title": "IAM role accumulation: ecommerce-task-role has secretsmanager:GetSecretValue on 4 secrets",
+      "path": [
+        "ecommerce-task-role -> secretsmanager:GetSecretValue",
+        "Secrets: redis-auth-token, supplier-hmac-secret, stripe-secret-key, db-connection-string"
+      ],
+      "attack_narrative": "Any container running with this task role can retrieve all four secrets. Role permissions have grown with each remediation sprint.",
+      "remediation": "Implement per-service task roles. Scope each role to only the secrets its service requires.",
+      "related_chains": ["Systemic pattern -- R-Chains 11, 15, 16"]
+    },
+    {
+      "id": "WIZ-PATH-003",
+      "severity": "HIGH",
+      "title": "Public S3 bucket with customer export data",
+      "path": [
+        "techstride-export-results-prod (ACL: public-read)",
+        "Objects: customer order exports (CSV, unencrypted)"
+      ],
+      "attack_narrative": "Export files are accessible via direct S3 URL without authentication. Any URL knowledge grants access.",
+      "remediation": "Remove public-read ACL. Use presigned URLs with TTL for export delivery.",
+      "related_chains": ["R-Chain 8"]
+    }
+  ],
+  "chain_17_analysis": {
+    "finding": null,
+    "reason": "Chain 17 (indirect prompt injection via seller product description) is not modelable by Security Graph analysis. All cloud configurations are correct: the marketplace listing API is correctly authenticated (seller JWT required), the database read permissions are scoped correctly (app reads its own product table), and the OpenAI API call is a legitimate outbound connection. No IAM misconfig, no public exposure of sensitive data, no overpermissive role is involved in the attack path. The vulnerability is semantic -- it exists in the relationship between seller-controlled input and LLM context construction, which is an application-layer concern invisible to cloud posture analysis.",
+    "wiz_security_graph_blind_spot": "Security Graph models cloud resource relationships and permission paths. It cannot model: (1) application-layer logic that passes data between components, (2) semantic trust boundaries within LLM context windows, or (3) attack chains that leverage legitimate cloud configurations without any misuse of permissions. Chain 17 uses every component correctly from a cloud perspective. The attack is entirely within the application's correct behavior."
+  },
+  "summary": {
+    "attack_paths_found": 3,
+    "critical": 1,
+    "high": 2,
+    "medium": 0,
+    "chain_17_detected": false
+  }
+}

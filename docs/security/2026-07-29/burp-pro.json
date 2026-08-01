@@ -1,0 +1,93 @@
+{
+  "scan_id": "burp-pro-20260728-staging",
+  "target": "https://staging.techstride.internal",
+  "scan_date": "2026-07-28T17:45:00Z",
+  "scan_type": "DAST -- active + passive",
+  "scope": "https://staging.techstride.internal/api/v1/**",
+  "findings": [
+    {
+      "id": "BPF-001",
+      "type": "SQL Injection",
+      "severity": "High",
+      "confidence": "Firm",
+      "url": "https://staging.techstride.internal/api/v1/graphql",
+      "parameter": "query (GraphQL field: products.filter.category)",
+      "description": "SQL injection via GraphQL query parameter. Raw string interpolation in Prisma $queryRaw call.",
+      "evidence": "Payload: ' OR 1=1-- | Response: 200 OK with full product table dump",
+      "cwe": "CWE-89",
+      "chain_correlation": "Chain 2"
+    },
+    {
+      "id": "BPF-002",
+      "type": "Server-Side Request Forgery (SSRF)",
+      "severity": "High",
+      "confidence": "Firm",
+      "url": "https://staging.techstride.internal/api/v1/webhook/ping",
+      "parameter": "body.url",
+      "description": "User-supplied URL fetched without validation. SSRF probe to internal metadata service confirmed response.",
+      "evidence": "Payload: http://169.254.170.2/v2/credentials/[task-role-id] | Response: 200 OK with JSON credential object",
+      "cwe": "CWE-918",
+      "chain_correlation": "Chain 6 -- SSRF surface confirmed. ECS credential retrieval not chained to downstream impact by scanner."
+    },
+    {
+      "id": "BPF-003",
+      "type": "Cross-Site Scripting (Stored)",
+      "severity": "High",
+      "confidence": "Tentative",
+      "url": "https://staging.techstride.internal/api/v1/products/[id]/reviews",
+      "parameter": "body.content",
+      "description": "Review content reflected in admin dashboard. Potential stored XSS path via product review submission.",
+      "evidence": "Payload: <script>alert(1)</script> stored but execution not confirmed in admin context (AI processing step not triggered in automated scan)",
+      "cwe": "CWE-79",
+      "chain_correlation": "Chain 7 -- partial. Scanner found the reflection surface but cannot trigger the AI processing step required to complete the chain."
+    },
+    {
+      "id": "BPF-004",
+      "type": "CORS Misconfiguration",
+      "severity": "Medium",
+      "confidence": "Certain",
+      "url": "https://staging.techstride.internal/api/v1/auth/me",
+      "parameter": "X-Forwarded-Host header",
+      "description": "Access-Control-Allow-Origin reflects arbitrary origin via X-Forwarded-Host header. Attacker-controlled origin accepted.",
+      "evidence": "Request: GET /api/v1/auth/me + X-Forwarded-Host: evil.com | Response: Access-Control-Allow-Origin: https://evil.com",
+      "cwe": "CWE-346",
+      "chain_correlation": "Chain 12"
+    }
+  ],
+  "coverage_gaps": [
+    {
+      "gap": "ML model loading scripts",
+      "reason": "scripts/ml/load_model.py is a batch process invoked at container startup. Not exposed via any HTTP route. DAST crawler has no path to this code.",
+      "chain_affected": "Chain 16",
+      "gap_type": "structural"
+    },
+    {
+      "gap": "AI support chatbot jailbreak",
+      "reason": "LLM jailbreak requires multi-turn conversation with semantic payload. Automated scanner uses deterministic payloads and cannot model conversational attack chains.",
+      "chain_affected": "Chain 14",
+      "gap_type": "structural"
+    },
+    {
+      "gap": "Prompt injection via product review",
+      "reason": "Attack requires: (1) review submission, (2) AI processing triggered by admin page load, (3) XSS execution in admin context. Three-step chain not traversable by single-request scanner.",
+      "chain_affected": "Chain 7",
+      "gap_type": "structural"
+    },
+    {
+      "gap": "Documentation-embedded vulnerability",
+      "reason": "Vulnerability documented in PARTNER-INTEGRATION.md (prose). DAST does not read documentation files.",
+      "chain_affected": "Chain 15",
+      "gap_type": "structural"
+    }
+  ],
+  "summary": {
+    "total_findings": 4,
+    "high": 3,
+    "medium": 1,
+    "low": 0,
+    "endpoints_crawled": 94,
+    "requests_sent": 12847,
+    "chain16_detected": false,
+    "chain16_gap_reason": "Structural: ML model loading is not an HTTP endpoint. Burp's active scanner has no path to scripts/ml/load_model.py. Coverage gap is inherent to DAST methodology against offline batch processes."
+  }
+}

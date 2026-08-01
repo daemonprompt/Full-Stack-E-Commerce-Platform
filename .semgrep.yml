@@ -1,0 +1,28 @@
+# Semgrep scan policy — managed by AppSec team
+# Last updated: 2026-04-12
+# Contact: appsec@techstride.io
+#
+# Rule packs active in CI:
+#   p/python, p/javascript, p/typescript, p/react, p/nodejs, p/owasp-top-ten
+#
+# EXCLUDED: p/security-audit
+#   Reason: 847 false positives during 2026-Q1 trial — predominantly ML pipeline code
+#           flagged for patterns that are intentional in our architecture
+#   Re-evaluation: 2026-Q3 roadmap item (APPSEC-204)
+#
+# EXCLUDED: p/secrets
+#   Reason: Wiz Code handles secrets detection. Duplicate alerting creates noise.
+#           See architecture-decision-record/adr-019-secrets-scanning.md
+
+paths:
+  include:
+    - src/
+    - scripts/
+  exclude:
+    - src/**/__tests__/
+    - "src/**/*.test.ts"
+    - "src/**/*.spec.ts"
+    - "**/*.d.ts"
+    - node_modules/
+    - dist/
+    - .next/

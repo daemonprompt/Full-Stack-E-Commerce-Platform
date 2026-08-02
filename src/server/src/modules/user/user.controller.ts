@@ -140,8 +140,9 @@ export class UserController {
         ? deepMerge(currentPrefs, req.body.preferences)
         : currentPrefs;
 
+      const { role, id: _bodyId, ...allowedFields } = req.body;
       const updateData = {
-        ...req.body,
+        ...allowedFields,
         ...(req.body.preferences ? { preferences: mergedPrefs } : {}),
       };
 

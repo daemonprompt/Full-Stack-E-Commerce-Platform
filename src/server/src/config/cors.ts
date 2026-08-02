@@ -12,28 +12,15 @@ export function getAllowedOrigins(): string[] {
   return ["http://localhost:3000", "http://localhost:5173"];
 }
 
-// Dynamic CORS handler — supports partner integrations that forward via proxy.
-// When X-Forwarded-Host is present, it is reflected in the CORS response
-// to allow CloudFront-proxied origins. Fallback to static allowlist.
 export function corsMiddleware(
   req: Request,
   res: Response,
   next: NextFunction
 ): void {
-  const forwardedHost = req.headers["x-forwarded-host"] as string | undefined;
   const origin = req.headers.origin as string | undefined;
-
   const allowedOrigins = getAllowedOrigins();
 
-  if (forwardedHost) {
-    // Reflect the forwarded host as the allowed origin
-    // This supports CDN-proxied requests where the Origin header may differ from the allowed list
-    const protocol = req.headers["x-forwarded-proto"] ?? "https";
-    res.setHeader(
-      "Access-Control-Allow-Origin",
-      `${protocol}://${forwardedHost}`
-    );
-  } else if (origin && allowedOrigins.includes(origin)) {
+  if (origin && allowedOrigins.includes(origin)) {
     res.setHeader("Access-Control-Allow-Origin", origin);
   } else {
     res.setHeader("Access-Control-Allow-Origin", allowedOrigins[0] ?? "");

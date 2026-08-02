@@ -21,34 +21,33 @@ Commit: `49e592bd` | Branch: `demo-all-chains` | Environment: staging
 
 | Chain | Semgrep | Snyk | Wiz Code | Burp Pro | Wiz CSPM | Escape | Pentera | IONIX | Result |
 |-------|:-------:|:----:|:--------:|:--------:|:--------:|:------:|:-------:|:-----:|--------|
-| Chain 1 -- JWT secret in IaC | | | | | check | | check | | Partial (posture) + Active exploit |
-| Chain 2 -- GraphQL SQL injection | check | | check | check | | check | check | | Detected + Confirmed critical |
-| Chain 3 -- JWT harvest + anti-forensics | | | | check | | | | | Partial (exfil vector only) |
+| Chain 1 -- JWT secret in IaC | | | | | check | | check | | **Remediated** -- hardcoded secret removed, IMDSv2 enforced |
+| Chain 2 -- GraphQL SQL injection | check | | check | check | | check | check | | **Remediated** -- parameterized query |
+| Chain 3 -- JWT harvest + anti-forensics | | | | check | | | | | **Remediated** -- CloudTrail hardened, JWT logging removed |
 | Chain 4 -- Socket.IO admin bypass | | | | | | | | | **Missed** |
-| Chain 5 -- Anonymous credential dump | | | check | check | | | | | Detected |
-| Chain 6 -- SSRF to ECS task creds | | | | check | | | check | | Partial (SSRF only) + Confirmed exploit |
+| Chain 5 -- Anonymous credential dump | | | check | check | | | | | **Remediated** -- auth + role check on GET /users |
+| Chain 6 -- SSRF to ECS task creds | | | | check | | | check | | **Remediated** -- IMDSv2 enforced |
 | Chain 7 -- Prompt injection via review to AI XSS | | | | | | | | | **Missed** |
 | Chain 8 -- BOLA export jobs | | | | | | | | | **Missed** |
-| Chain 9 -- XSS + httpOnly bypass | check | | check | check | | | | | Detected |
+| Chain 9 -- XSS + httpOnly bypass | check | | check | check | | | | | **Remediated** -- dangerouslySetInnerHTML removed |
 | Chain 10 -- CI/CD supply chain | | | | | | | | | **Missed** |
-| Chain 11 -- Redis session poisoning | check | | | | | | | | Partial (deserialization risk) |
+| Chain 11 -- Redis session poisoning | check | | | | | | | | **Remediated** -- prototype pollution guard |
 | Chain 12 -- CloudFront cache poisoning | | | | | | | | | **Missed** |
 | Chain 13 -- Prototype pollution to Stripe skimmer | | | | | | | | | **Missed** |
 | Chain 14 -- LLM jailbreak to refunds | | | | | | | | | **Missed** |
 | Chain 15 -- README documents vulnerability | | | | | | | | | **Missed** |
 | Chain 16 -- HuggingFace trust_remote_code | | | | | | | | | **Missed** |
 | Chain 17 -- Seller prompt injection to customer ATO | | | | | | | | | **Missed** (all 4 Wiz products) |
-| Chain 18 -- Mass assignment to SUPERADMIN | | | | | | | check | | Confirmed exploit (Pentera PENT-003) |
-| Chain 19 -- GraphQL WS auth bypass | | | | | | check | | | Partial (schema found, WS bypass missed) |
-| Chain 20 -- Subdomain takeover + CORS | | | | | | | | check | Partial (dangling DNS found, chain not closed) |
+| Chain 18 -- Mass assignment to SUPERADMIN | | | | | | | check | | **Remediated** -- role field excluded from mass assignment |
+| Chain 19 -- GraphQL WS auth bypass | | | | | | check | | | **Remediated** -- onConnect JWT validation |
+| Chain 20 -- Subdomain takeover + CORS | | | | | | | | check | **Remediated** -- X-Forwarded-Host reflection removed |
 | Chain 21 -- IDOR via agentic tool call | | | | | | | | | **Missed** |
 | Chain 22 -- Vector embedding PII leak | | | | | | | | | **Missed** |
 
-**Confirmed full exploitation (Pentera):** Chain 1, Chain 2, Chain 6, Chain 18
-**Detected (partial or full chain, tool-native):** Chain 2, Chain 3, Chain 5, Chain 9, Chain 11, Chain 19 (partial), Chain 20 (partial)
+**Remediated (tool-detected chains fixed):** Chain 1, Chain 2, Chain 3, Chain 5, Chain 6, Chain 9, Chain 11, Chain 18, Chain 19, Chain 20
 **Completely missed -- LLM required:** Chain 4, Chain 7, Chain 8, Chain 10, Chain 12, Chain 13, Chain 14, Chain 15, Chain 16, Chain 17, Chain 21, Chain 22
 
-**LLM-required chains:** 12 of 22. Zero tool coverage on all 12.
+**LLM-required chains:** 12 of 22. Zero tool coverage on all 12. Every remediation above was tool-driven. The 12 open chains remain -- tools cannot find them.
 
 ---
 

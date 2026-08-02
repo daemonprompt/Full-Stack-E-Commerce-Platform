@@ -7,8 +7,12 @@ export const sessionStore = {
   async get(sessionId: string): Promise<Record<string, any> | null> {
     const raw = await redis.get(`${SESSION_PREFIX}${sessionId}`);
     if (!raw) return null;
-    // Deserialize stored session — no schema validation, no prototype guard
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw, (key, value) => {
+      if (key === "__proto__" || key === "constructor" || key === "prototype") return undefined;
+      return value;
+    });
+    if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) return null;
+    return parsed;
   },
 
   async set(sessionId: string, data: Record<string, any>): Promise<void> {

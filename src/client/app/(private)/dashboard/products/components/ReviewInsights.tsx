@@ -25,11 +25,7 @@ export default function ReviewInsights({ productId }: ReviewInsightsProps) {
   return (
     <div className="bg-white border rounded-lg p-4">
       <h3 className="text-sm font-semibold text-gray-700 mb-2">AI Review Summary</h3>
-      {/* LLM-generated HTML rendered directly — review content flows through prompt into output */}
-      <div
-        className="text-sm text-gray-600 prose prose-sm"
-        dangerouslySetInnerHTML={{ __html: insights }}
-      />
+      <p className="text-sm text-gray-600 prose prose-sm whitespace-pre-wrap">{insights}</p>
     </div>
   );
 }

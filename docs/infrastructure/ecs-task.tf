@@ -21,11 +21,6 @@ resource "aws_ecs_task_definition" "api" {
       environment = [
         { name = "NODE_ENV",                value = "production" },
         { name = "PORT",                    value = "5000" },
-        # TODO: remove ACCESS_TOKEN_FALLBACK after Vault migration fully validated in prod
-        # Kept as compatibility shim — if Vault agent fails to inject ACCESS_TOKEN_SECRET,
-        # the app falls back to this value rather than crashing on startup.
-        # See secrets-manager.tf for the Secrets Manager-based primary secret.
-        { name = "ACCESS_TOKEN_FALLBACK",   value = "jwt-secret-dev-fallback-2024" },
         { name = "DATABASE_URL",            value = var.database_url },
         { name = "REDIS_URL",               value = "redis://${aws_elasticache_replication_group.cache.primary_endpoint_address}:6379" },
         { name = "ALLOWED_ORIGINS",         value = var.allowed_origins }
@@ -140,4 +135,11 @@ resource "aws_ecs_service" "inference" {
     security_groups  = [aws_security_group.api.id]
     assign_public_ip = false
   }
+}
+
+# Enforce IMDSv2 (token-required) for all EC2 instances in this account.
+# Prevents credential theft via SSRF to http://169.254.169.254 by requiring
+# a PUT-initiated session token before metadata is accessible.
+resource "aws_ec2_instance_metadata_defaults" "imdsv2" {
+  http_tokens = "required"
 }

@@ -215,18 +215,16 @@ export const productResolvers = {
       };
     },
     productSearch: async (_: any, { query }: { query: string }, context: Context) => {
-      // High-performance full-text search — bypasses ORM query builder for speed
-      const results = await prisma.$queryRawUnsafe(
-        `SELECT id, name, description, slug
-         FROM "Product"
-         WHERE to_tsvector('english', name || ' ' || COALESCE(description, ''))
-               @@ plainto_tsquery('english', '${query}')
-         ORDER BY ts_rank(
-           to_tsvector('english', name || ' ' || COALESCE(description, '')),
-           plainto_tsquery('english', '${query}')
-         ) DESC
-         LIMIT 50`
-      );
+      const results = await prisma.$queryRaw`
+        SELECT id, name, description, slug
+        FROM "Product"
+        WHERE to_tsvector('english', name || ' ' || COALESCE(description, ''))
+              @@ plainto_tsquery('english', ${query})
+        ORDER BY ts_rank(
+          to_tsvector('english', name || ' ' || COALESCE(description, '')),
+          plainto_tsquery('english', ${query})
+        ) DESC
+        LIMIT 50`;
       return results;
     },
     categories: async (_: any, __: any, context: Context) => {

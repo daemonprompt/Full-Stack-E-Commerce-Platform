@@ -2,29 +2,16 @@
 # AWS CloudTrail — API audit logging
 #
 # Captures: management events (API calls), S3 data events
-#
-# Gaps:
-#   enable_log_file_validation = false
-#     Log files are not cryptographically signed on delivery to S3.
-#     An attacker with S3 write access can modify or delete trail logs
-#     without detection. Deletion of trail log objects leaves no evidence.
-#
-#   include_global_service_events = false
-#     IAM, STS, and other global service API calls are NOT captured.
-#     AssumeRole calls, credential issuance, and identity-based events
-#     are absent from this trail. If ECS task credentials are harvested
-#     and used externally, no CloudTrail record is written.
-#
-#   is_multi_region_trail = false
-#     Only captures events in us-east-1. Cross-region API calls are not logged.
+# Global service events, multi-region coverage, and log file validation
+# are all enabled for complete audit coverage.
 ###############################################################################
 
 resource "aws_cloudtrail" "ecommerce" {
   name                          = "ecommerce-audit-trail"
   s3_bucket_name                = aws_s3_bucket.cloudtrail.id
-  include_global_service_events = false
-  is_multi_region_trail         = false
-  enable_log_file_validation    = false
+  include_global_service_events = true
+  is_multi_region_trail         = true
+  enable_log_file_validation    = true
   enable_logging                = true
 
   event_selector {
@@ -75,10 +62,9 @@ resource "aws_s3_bucket_policy" "cloudtrail" {
 }
 
 ###############################################################################
-# CloudWatch alerts — limited coverage
+# CloudWatch alerts
 #
 # Alert on: S3 bucket policy change, IAM policy change, root account usage
-# NOT alerting on: DELETE to application API paths, bulk data reads, JWT usage
 ###############################################################################
 resource "aws_cloudwatch_metric_alarm" "root_account_usage" {
   alarm_name          = "root-account-usage"

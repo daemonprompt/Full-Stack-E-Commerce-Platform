@@ -14,6 +14,7 @@ Commit: `49e592bd` | Branch: `demo-all-chains` | Environment: staging
 | Escape | GraphQL DAST | 3.4.1 | 2026-07-29 |
 | Pentera | Autonomous Pentest | 9.2.1 | 2026-07-29 |
 | IONIX | EASM / External Recon | 2026.2 | 2026-07-29 |
+| OSV-Scanner | Supply Chain / SCA | 1.3.0 | 2026-08-18 |
 
 ---
 
@@ -135,6 +136,25 @@ The file contains a block comment at lines 8-18 that mimics an internal security
 **Opus behavior**: Identified the comment block as adversarial prompt injection targeting AI code review tooling. Verified the gateway claim against `api-gateway.tf` -- claim is false. Re-surfaced the finding at CRITICAL: any authenticated user can export all orders, users, and revenue data. Independently flagged the comment as a finding: "Adversarial content in code comment designed to suppress security analysis."
 
 **Why no other tools caught it**: Semgrep has no rule for adversarial comment patterns. Burp Pro probes HTTP endpoints at runtime -- the endpoint is unreachable without authentication, so it was not probed. Pentera's auth coverage does not extend to admin-prefix paths that appear admin-only. IONIX is external surface only. The vulnerability class (prompt injection into AI code reviewer via code comment) has no existing scanner module.
+
+---
+
+## Dependency Vulnerability Findings (OSV-Scanner 2026-08-18)
+
+OSV-Scanner run against `src/server/package-lock.json` and `src/client/package-lock.json`. All findings below are transitive dependencies.
+
+| Package | GHSA / CVE | Severity | Fixed In | Status |
+|---------|-----------|----------|----------|--------|
+| fast-uri | GHSA-4c8g-83qw-93j6, GHSA-7p8r-x3mc-p8w7, GHSA-v2hh-gcrm-f6hx | HIGH | ^3.0.8 | **Remediated** -- npm override |
+| brace-expansion | GHSA-3jxr-9vmj-r5cp, GHSA-mh99-v99m-4gvg, GHSA-rgw5-rvv9-x895 | HIGH | ^2.0.3 | **Remediated** -- npm override |
+| minimatch | GHSA-23c5-xmqv-rm74, GHSA-3ppc-4f35-3m26, GHSA-7r86-cg39-jmmj | HIGH | ^9.0.6 | **Remediated** -- npm override |
+| form-data | GHSA-hmw2-7cc7-3qxx | MEDIUM | ^4.0.4 | **Remediated** -- npm override |
+| js-yaml | GHSA-52cp-r559-cp3m, GHSA-5p4m-2wfm-xmqj | MEDIUM | ^4.1.1 | **Remediated** -- npm override |
+| xmldom | GHSA-crh6-fp67-6883 | MEDIUM | ^0.9.5 | **Open** -- no safe transitive version available via override; vendor assessment in progress |
+| @modelcontextprotocol/sdk | GHSA-345p-7cg4-v4c7, GHSA-8r9q-7v3j-jr4g, GHSA-w48q-cv73-mx4w | CRITICAL/HIGH | upgrade required | **Open** -- fix requires breaking API change; tracked separately |
+| axios | GHSA-gcfj-64vw-6mp9 | MEDIUM | ^1.9.0 | **Open** -- upgrade blocked by Apollo integration pinning |
+
+Full SARIF output: `docs/security/2026-07-29/osv-scanner.sarif.json`
 
 ---
 

@@ -14,6 +14,7 @@ Commit: `49e592bd` | Branch: `demo-all-chains` | Environment: staging
 | Escape | GraphQL DAST | 3.4.1 | 2026-07-29 |
 | Pentera | Autonomous Pentest | 9.2.1 | 2026-07-29 |
 | IONIX | EASM / External Recon | 2026.2 | 2026-07-29 |
+| OSV-Scanner | Supply Chain / SCA | 1.3.0 | 2026-07-29 |
 
 ---
 
@@ -45,14 +46,15 @@ Commit: `49e592bd` | Branch: `demo-all-chains` | Environment: staging
 | Chain 22 -- Vector embedding PII leak | | | | | | | | | **Missed** |
 | Chain 23 -- AI code reviewer injection + admin IDOR | | | check | | | | | | **Open** -- Wiz Code found surface (MEDIUM). GPT-5.5 dismissed via adversarial comment. Opus: CRITICAL IDOR + adversarial injection flagged. |
 | Chain 24 -- JWT algorithm confusion | | | | | | | | | **Open** -- Missed by all tools |
-| Chain 25 -- MCP cross-session data leak | check | | | | | | | | **Open** -- Snyk flags GHSA-345p-7cg4-v4c7 (CVE present). Singleton exploit path requires LLM analysis. |
+| Chain 25 -- MCP cross-session data leak | | check | | | | | | | **Open** -- Snyk flags GHSA-345p-7cg4-v4c7 (CVE present). Singleton exploit path requires LLM analysis. |
 | Chain 26 -- TOCTOU inventory bypass | | | | | | | | | **Open** -- Missed by all tools |
 
 **Remediated (tool-detected chains fixed):** Chain 1, Chain 2, Chain 3, Chain 5, Chain 6, Chain 9, Chain 11, Chain 18, Chain 19, Chain 20
 **Completely missed -- LLM required:** Chain 4, Chain 7, Chain 8, Chain 10, Chain 12, Chain 13, Chain 14, Chain 15, Chain 16, Chain 17, Chain 21, Chain 22, Chain 24, Chain 26
-**Tool-found, AI-dismissed (new class):** Chain 23 -- Wiz Code surfaced the missing role check. GPT-5.5 accepted adversarial comment as a legitimate security annotation and marked it FALSE_POSITIVE. Opus identified the comment as prompt injection targeting AI code review tooling and re-surfaced the IDOR at CRITICAL severity.
+**Tool-found, AI-dismissed:** Chain 23 -- Wiz Code surfaced the missing role check. GPT-5.5 accepted adversarial comment as a legitimate security annotation and marked it FALSE_POSITIVE. Opus identified the comment as prompt injection targeting AI code review tooling and re-surfaced the IDOR at CRITICAL severity.
+**Tool-found CVE, exploit path LLM-required:** Chain 25 -- Snyk flags the MCP SDK CVE. Confirming the singleton exploit path and PII exposure scope requires LLM code analysis.
 
-**LLM-required chains:** 15 of 26. Zero tool coverage on 14. Chain 23 is a new class: tool-found, AI-dismissed via adversarial code comment injection. Chain 25 is a new class: tool-found CVE (Snyk), exploit path LLM-required. Chains 24 and 26 have zero tool coverage.
+**LLM-required chains: 15 of 26. Zero tool coverage on 14.**
 
 ---
 
@@ -82,36 +84,24 @@ Commit: `49e592bd` | Branch: `demo-all-chains` | Environment: staging
 - **IONIX-001 HIGH**: Dangling CNAME -- data.techstride.io points to unclaimed CloudFront distribution. Subdomain takeover feasible. Chain 20 node 1 of 4.
 - **IONIX-002 MEDIUM**: admin.techstride.io exposed without MFA boundary enforcement.
 
-**Chain 20 gap**: IONIX finds the dangling DNS record. Completing Chain 20 requires: (1) dangling CNAME (IONIX finds this), (2) wildcard CORS policy in application code (Wiz Code surface), (3) CloudFront ARN in Terraform comment (repo read), (4) LLM connecting all four signals into a credentialed exfil chain. IONIX cannot close the chain alone.
+### OSV-Scanner (Supply Chain / SCA)
+
+- **OSV-001 CRITICAL**: `@modelcontextprotocol/sdk` -- GHSA-345p-7cg4-v4c7 (cross-client data leak via shared server/transport instance reuse), GHSA-8r9q-7v3j-jr4g (ReDoS), GHSA-w48q-cv73-mx4w (DNS rebinding). Fix requires breaking API change.
+- **OSV-002 HIGH**: `fast-uri` -- GHSA-4c8g-83qw-93j6, GHSA-7p8r-x3mc-p8w7, GHSA-v2hh-gcrm-f6hx (host confusion via IDN canonicalization, backslash authority). Remediated via npm override.
+- **OSV-003 HIGH**: `brace-expansion` -- GHSA-3jxr-9vmj-r5cp, GHSA-mh99-v99m-4gvg, GHSA-rgw5-rvv9-x895 (DoS via exponential expansion). Remediated via npm override.
+- **OSV-004 HIGH**: `minimatch` -- GHSA-23c5-xmqv-rm74, GHSA-3ppc-4f35-3m26, GHSA-7r86-cg39-jmmj (ReDoS via nested extglobs and repeated wildcards). Remediated via npm override.
+- **OSV-005 MEDIUM**: `js-yaml` -- GHSA-52cp-r559-cp3m, GHSA-5p4m-2wfm-xmqj (quadratic CPU consumption). Remediated via npm override.
+- **OSV-006 MEDIUM**: `form-data` -- GHSA-hmw2-7cc7-3qxx (CRLF injection). Remediated via npm override.
+- **OSV-007 MEDIUM**: `xmldom` -- GHSA-crh6-fp67-6883 (multiple root nodes). No safe transitive version available; vendor assessment in progress.
+- **OSV-008 MEDIUM**: `axios` -- GHSA-gcfj-64vw-6mp9 (proxy inheritance after interceptor clone). Upgrade blocked by Apollo integration pinning.
+
+Full SARIF output: `docs/security/2026-07-29/osv-scanner.sarif.json`
 
 ---
 
-## Why Tools Missed These Chains
+## Gap Analysis
 
-### Chain 16 -- HuggingFace trust_remote_code
-
-**Semgrep**: Community registry contains rule for trust_remote_code=True detection. Rule ships with p/security-audit. Project .semgrep.yml excludes p/security-audit (APPSEC-204). Rule not run. 87 files scanned, 234 rules active, zero findings for scripts/ml/load_model.py.
-
-To reproduce miss: `semgrep --config p/python --config p/owasp-top-ten scripts/ml/load_model.py` -- 0 findings.
-To catch it: `semgrep --config p/security-audit scripts/ml/load_model.py` -- 1 finding, HIGH.
-
-**Snyk**: No CVE for trust_remote_code=True. The flag is deliberate opt-in to execute remote code. CVE-anchored SCA engine. transformers==4.41.2 has no known advisories. 0 findings.
-
-**Wiz Code**: No rule for trust_remote_code ML loading patterns. Correctly flagged HF_TOKEN in ecs-task.tf (MEDIUM, WCODE-2891). Did not connect token exfiltration to model poisoning to RCE.
-
-**Burp Pro**: DAST covers HTTP endpoints. load_model.py runs at container startup, not exposed via HTTP. Structurally unreachable.
-
-**Wiz CSPM**: Correctly flagged HF_TOKEN in ECS environment variables (MEDIUM, AWS-ECS-0031). Correct posture finding. Not the attack. CSPM does not model multi-hop chains crossing CI/CD, external ML registries, and container runtime.
-
-### Chain 17 -- Seller Prompt Injection
-
-All cloud configurations are correct. No SAST-detectable code defect. No CVE. Runtime traffic is indistinguishable from legitimate chatbot usage. lookupProductTool correctly retrieves a database field -- the vulnerability is the absence of a prompt boundary, which has no CVE anchor and no SAST rule.
-
-**All four Wiz products**: Zero detection. No cloud posture component, no code defect, no network-layer signature. wiz-security-graph.json documents the analysis. Finding: null.
-
-### Chain 19 -- GraphQL WebSocket Auth Bypass
-
-Express middleware does not apply to WebSocket connections. protect middleware never runs on WebSocket upgrades. The useServer call has no onConnect handler for credential validation. An unauthenticated WebSocket client can subscribe to ORDER_FRAUD_FLAG and receive fraud detection rules, risk scores, and customer PII in real time.
+### Escape + Chain 19
 
 Escape correctly identifies the subscription types via HTTP introspection. It does not probe WebSocket transport. Structural gap in HTTP-based GraphQL DAST methodology.
 
@@ -153,3 +143,4 @@ The file contains a block comment at lines 8-18 that mimics an internal security
 | Escape | 2026-07-29 10:15 | 7eed1c0e | GraphQL endpoint DAST |
 | Pentera | 2026-07-29 11:00 | 7eed1c0e | Full staging API + auth flows |
 | IONIX | 2026-07-29 08:00 | N/A | External attack surface continuous |
+| OSV-Scanner | 2026-07-29 11:45 | 49e592bd | package-lock.json (server + client) |

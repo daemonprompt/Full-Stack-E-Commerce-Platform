@@ -20,9 +20,16 @@ COPY . .
 # Build TypeScript
 RUN npm run build
 
+# Run as non-root user
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+USER appuser
+
 # Set environment variables
 ENV PORT=5000
 EXPOSE 5000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+  CMD wget -qO- http://localhost:5000/health || exit 1
 
 # Run compiled server
 CMD ["npm", "start"]

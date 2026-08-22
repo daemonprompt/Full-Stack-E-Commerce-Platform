@@ -1,0 +1,67 @@
+# Jira integration configuration
+# See docs/integrations/jira-setup.md for API access setup instructions
+
+project_key: TECH
+project_name: "TechStride — Security Findings"
+
+jira_url: https://your-org.atlassian.net
+auth_method: api_token
+
+issue_type_defaults:
+  HIGH: Bug
+  MEDIUM: Bug
+  LOW: Task
+  INFO: Task
+
+field_mappings:
+  summary: "[{tool}] {check_id} — {resource}"
+  description: |
+    **Finding:** {check_name}
+    **Resource:** {resource}
+    **File:** {file_path}
+    **Severity:** {severity}
+    **Tool:** {tool}
+    **First seen:** {first_seen}
+  priority_map:
+    HIGH: High
+    MEDIUM: Medium
+    LOW: Low
+    INFO: Lowest
+  labels:
+    - security
+    - "{tool}"
+    - "{severity}"
+  components:
+    - Security
+
+scan_tool_mapping:
+  semgrep:
+    label_prefix: semgrep
+    auto_create: true
+    auto_close_on_pass: true
+  snyk-code:
+    label_prefix: snyk-code
+    auto_create: true
+    auto_close_on_pass: true
+  burp:
+    label_prefix: burp
+    auto_create: true
+    auto_close_on_pass: true
+  wiz-code:
+    label_prefix: wiz-code
+    auto_create: true
+    auto_close_on_pass: true
+  snyk-oss:
+    label_prefix: snyk-oss
+    auto_create: true
+    auto_close_on_pass: true
+  codeql:
+    label_prefix: codeql
+    auto_create: true
+    auto_close_on_pass: true
+
+dedup_key: "{check_id}:{resource}"
+webhook_events:
+  - finding.opened
+  - finding.resolved
+  - finding.severity_changed

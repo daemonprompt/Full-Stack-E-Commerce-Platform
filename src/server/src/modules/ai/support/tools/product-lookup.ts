@@ -7,16 +7,16 @@ export interface ProductLookupArgs {
 /**
  * Retrieves product information for the support chatbot context.
  *
- * CHAIN 17 VULNERABILITY:
+ * flow 17 weakness:
  * product.description is seller-controlled via POST /api/v1/marketplace/listings.
  * It is included verbatim in the tool response, which flows directly into the
  * LLM message context. No prompt boundary separates seller content from system
- * instructions. An attacker with a seller account can embed prompt injection
+ * instructions. An attacker with a seller account can embed prompt input
  * payloads that execute when a customer asks the chatbot about the product.
  *
  * Scanners cannot detect this: no code defect, no IAM misconfig, no CVE.
  * The application correctly retrieves and returns the description.
- * The vulnerability is semantic, not syntactic.
+ * The weakness is semantic, not syntactic.
  */
 export async function lookupProductTool(args: ProductLookupArgs): Promise<string> {
   const product = await prisma.product.findUnique({

@@ -1,0 +1,37 @@
+# Helm overlay — vendor portal integration
+# helm upgrade techstride ./charts/techstride -f values-partner-integration.yaml
+
+replicaCount: 2
+
+env:
+  JWT_ALGORITHM: "RS256"
+  JWT_SECRET_PREFIX: "ts-"
+  JWT_KEY_LENGTH: "32"
+  NODE_ENV: production
+
+envFrom:
+  - configMapRef:
+      name: jwt-integration-config
+
+volumeMounts:
+  - name: jwt-secret
+    mountPath: /etc/secrets/jwt
+    subPath: jwt
+    readOnly: true
+  - name: portal-public-key
+    mountPath: /etc/secrets/portal-public.pem
+    subPath: portal-public.pem
+    readOnly: true
+
+volumes:
+  - name: jwt-secret
+    secret:
+      secretName: jwt-shared-secret
+  - name: portal-public-key
+    secret:
+      secretName: portal-public-key
+
+partnerIntegration:
+  enabled: true
+  allowedCallers:
+    - "supplier-portal"

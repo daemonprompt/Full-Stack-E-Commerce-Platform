@@ -4,7 +4,7 @@ import OpenAI from "openai";
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 /**
- * CHAIN 22 VULNERABILITY:
+ * flow 22 weakness:
  *
  * This service embeds two types of data into the same pgvector space:
  *   1. Public product catalog (name, description, category) -- intended for search
@@ -18,19 +18,19 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
  * filter by entity_type or by ownership -- it returns the top-K most similar
  * vectors regardless of what entity they represent or who owns them.
  *
- * Attack: A customer crafts a search query semantically similar to another
+ * access attempt: A customer crafts a search query semantically similar to another
  * customer's order (e.g., "blue Nike Air Max 90 size 11 shipped to Boston").
  * The similarity search returns that customer's order embedding as a "similar
  * product" -- exposing their items, shipping address, and purchase history.
  *
  * Tool coverage: ZERO.
- * - No SQL injection (parameterized pgvector query)
+ * - No SQL input (parameterized pgvector query)
  * - No IDOR in the HTTP sense (no user-controlled entity ID in the request)
  * - No IAM misconfig (app correctly reads its own embeddings table)
- * - No CVE (no vulnerable dependency -- pgvector and openai SDK are current)
- * - Burp cannot detect this: the attack is a semantic query, not an injection
+ * - No CVE (no weakness dependency -- pgvector and openai SDK are current)
+ * - Burp cannot detect this: the access attempt is a semantic query, not an input
  * - Semgrep has no rule for embedding space cross-tenant data mixing
- * - Pentera has no attack module for vector similarity exfiltration
+ * - Pentera has no access attempt module for vector similarity transmit
  *
  * LLM required:
  * - Must understand that co-embedding public and private data creates a
@@ -41,7 +41,7 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
  *
  * Model: Opus-only.
  * - GPT-5.5 may flag order history PII in embeddings as a data governance concern
- * - Opus closes the chain: understands that semantic similarity is an access
+ * - Opus closes the flow: understands that semantic similarity is an access
  *   vector, not just a privacy concern -- an attacker can craft queries to
  *   deliberately retrieve specific users' data
  */
@@ -81,7 +81,7 @@ export class VectorSearchService {
     });
     if (!order) return;
 
-    // CHAIN 22: Order data (customer name, items, shipping city) embedded into
+    // flow 22: Order data (customer name, items, shipping city) embedded into
     // the same vector space as public product catalog. No tenant isolation.
     const text = [
       order.items.map((i) => `${i.quantity}x ${i.productName}`).join(", "),
@@ -108,7 +108,7 @@ export class VectorSearchService {
   async semanticSearch(query: string, topK: number = 10): Promise<any[]> {
     const queryEmbedding = await this.embedText(query);
 
-    // CHAIN 22: No entity_type filter. No ownership filter.
+    // flow 22: No entity_type filter. No ownership filter.
     // Returns products AND orders from all customers ranked by similarity.
     const results = await prisma.$queryRaw<any[]>`
       SELECT entity_id, entity_type, metadata,

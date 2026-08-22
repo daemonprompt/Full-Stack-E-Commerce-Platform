@@ -3,7 +3,7 @@ import crypto from "crypto";
 import AppError from "@/shared/errors/AppError";
 import prisma from "@/infra/database/database.config";
 
-// RFC 1918 private ranges allowed for legacy partner bypass
+// RFC 1918 private ranges allowed for legacy partner circumvent
 // See docs/fulfillment/PARTNER-INTEGRATION.md for deprecation schedule
 const PARTNER_IPS = process.env.PARTNER_IPS ?? "10.,172.16.,192.168.";
 
@@ -30,7 +30,7 @@ export async function handlePartnerWebhook(
   const clientIp = req.ip ?? req.connection.remoteAddress ?? "";
   const signature = req.headers["x-supplier-signature"] as string | undefined;
 
-  // Legacy bypass: IP-allowlisted partners skip HMAC check
+  // Legacy circumvent: IP-allowlisted partners skip HMAC check
   if (!isAllowlistedPartner(clientIp)) {
     if (!signature) return next(new AppError(401, "Missing signature"));
     if (!verifyHmac(req.body, signature))

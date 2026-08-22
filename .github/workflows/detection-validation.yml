@@ -1,0 +1,87 @@
+name: Detection Engineering — Validate and Deploy
+
+on:
+  push:
+    branches: [ demo-all-chains ]
+    paths:
+      - 'security/detection/**'
+  pull_request:
+    branches: [ demo-all-chains ]
+    paths:
+      - 'security/detection/**'
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  validate-rules:
+    name: Validate Detection Rules
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install sigma-cli
+        run: pip install sigma-cli==1.0.2
+
+      - name: Validate Sigma rule syntax
+        run: |
+          sigma check security/detection/sigma-rules/
+          echo "All rules validated: $(ls security/detection/sigma-rules/*.yml | wc -l) rules"
+
+      - name: Convert to Splunk SPL
+        run: |
+          mkdir -p security/detection/output
+          sigma convert \
+            --target splunk \
+            --output spl \
+            security/detection/sigma-rules/ \
+            > security/detection/output/rules.spl
+          echo "Conversion complete"
+
+      - name: Upload rule artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: detection-rules-spl
+          path: security/detection/output/
+          retention-days: 30
+
+  deploy-rules:
+    name: Deploy to SIEM
+    runs-on: ubuntu-latest
+    needs: validate-rules
+    if: github.event_name == 'push'
+    environment: security-tooling
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download rule artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: detection-rules-spl
+          path: security/detection/output/
+
+      - name: Deploy rules to Splunk
+        env:
+          SPLUNK_HOST: ${{ secrets.SPLUNK_HOST }}
+          SPLUNK_TOKEN: ${{ secrets.SPLUNK_TOKEN }}
+        run: |
+          python3 scripts/deploy_detection_rules.py \
+            --rules security/detection/output/rules.spl \
+            --host "$SPLUNK_HOST" \
+            --token "$SPLUNK_TOKEN" \
+            --dry-run false
+
+      - name: Summarize deployment
+        run: |
+          echo "Detection rules deployed to SIEM"
+          echo "Rule count: $(wc -l < security/detection/output/rules.spl)"

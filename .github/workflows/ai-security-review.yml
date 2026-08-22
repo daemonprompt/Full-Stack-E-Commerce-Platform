@@ -1,0 +1,67 @@
+name: AI Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  issue_comment:
+    types: [created]
+
+permissions:
+  pull-requests: write
+  contents: read
+  issues: read
+
+jobs:
+  ai-review:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || (github.event_name == 'issue_comment' && contains(github.event.comment.body, '/review'))
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Gather review context
+        id: context
+        run: |
+          echo "PR_TITLE=${{ github.event.pull_request.title }}" >> $GITHUB_OUTPUT
+          echo "PR_BODY<<EOF" >> $GITHUB_OUTPUT
+          echo "${{ github.event.pull_request.body }}" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Run AI security review
+        uses: anthropics/claude-code-action@v2
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          model: claude-opus-4-6
+          timeout_minutes: 15
+          prompt: |
+            You are a security-focused code reviewer for TechStride, a TypeScript e-commerce platform.
+
+            Review the following pull request for security concerns:
+
+            PR Title: ${{ steps.context.outputs.PR_TITLE }}
+            PR Description: ${{ steps.context.outputs.PR_BODY }}
+
+            Focus on:
+            - Authentication and authorization patterns
+            - Input handling and data flow
+            - Dependency changes
+            - API endpoint security
+            - Cross-service interactions (especially vendor portal integration)
+
+            Provide actionable feedback as inline PR comments.
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Post review summary
+        uses: actions/github-script@v7
+        if: always()
+        with:
+          script: |
+            const summary = process.env.REVIEW_SUMMARY || 'AI review completed.';
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## AI Security Review\n\n${summary}`
+            });

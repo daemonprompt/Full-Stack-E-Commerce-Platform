@@ -34,7 +34,7 @@ resource "aws_iam_role_policy" "task_s3" {
   })
 }
 
-# Backup bucket access — enables post-SSRF data exfiltration (Chain 6 target)
+# Backup bucket access — enables post-SSRF data transmit (flow 6 target)
 resource "aws_iam_role_policy" "task_s3_backups" {
   name = "ecommerce-task-s3-backups"
   role = aws_iam_role.ecommerce_task_role.id

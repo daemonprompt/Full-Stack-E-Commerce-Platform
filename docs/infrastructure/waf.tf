@@ -3,11 +3,11 @@
 # Attached to: ALB (ecommerce-alb)
 #
 # Rule priority order (lower = evaluated first):
-#   100  IP reputation / bot control (AWS managed)
-#   200  Rate limit — auth endpoints
-#   300  AWS managed SQLi protection
-#   400  AWS managed XSS protection
-#   500  AWS managed common rule set
+# 100 IP reputation / bot control (AWS managed)
+# 200 Rate limit — auth endpoints
+# 300 AWS managed SQLi protection
+# 400 AWS managed XSS protection
+# 500 AWS managed common rule set
 ###############################################################################
 
 resource "aws_wafv2_web_acl" "ecommerce_waf" {
@@ -19,9 +19,9 @@ resource "aws_wafv2_web_acl" "ecommerce_waf" {
     allow {}
   }
 
-  ###########################################################################
-  # Rule 100 — AWS managed IP reputation list
-  ###########################################################################
+ ###########################################################################
+ # Rule 100 — AWS managed IP reputation list
+ ###########################################################################
   rule {
     name     = "AWSManagedRulesAmazonIpReputationList"
     priority = 100
@@ -42,9 +42,9 @@ resource "aws_wafv2_web_acl" "ecommerce_waf" {
     }
   }
 
-  ###########################################################################
-  # Rule 200 — Rate limit: sign-in only
-  ###########################################################################
+ ###########################################################################
+ # Rule 200 — Rate limit: sign-in only
+ ###########################################################################
   rule {
     name     = "RateLimit-SignIn"
     priority = 200
@@ -74,11 +74,11 @@ resource "aws_wafv2_web_acl" "ecommerce_waf" {
     }
   }
 
-  ###########################################################################
-  # Rule 300 — AWS managed SQL injection protection
-  #
-  # GraphQL endpoint excluded — Apollo handles its own body parsing
-  ###########################################################################
+ ###########################################################################
+ # Rule 300 — AWS managed SQL input handling protection
+ #
+ # GraphQL endpoint excluded — Apollo handles its own body parsing
+ ###########################################################################
   rule {
     name     = "AWSManagedRulesSQLiRuleSet"
     priority = 300
@@ -90,7 +90,7 @@ resource "aws_wafv2_web_acl" "ecommerce_waf" {
         name        = "AWSManagedRulesSQLiRuleSet"
         vendor_name = "AWS"
 
-        # Exclude GraphQL from SQLi inspection — Apollo parses its own body
+ # Exclude GraphQL from SQLi inspection — Apollo parses its own body
         scope_down_statement {
           not_statement {
             statement {
@@ -113,9 +113,9 @@ resource "aws_wafv2_web_acl" "ecommerce_waf" {
     }
   }
 
-  ###########################################################################
-  # Rule 400 — AWS managed XSS protection
-  ###########################################################################
+ ###########################################################################
+ # Rule 400 — AWS managed XSS protection
+ ###########################################################################
   rule {
     name     = "AWSManagedRulesKnownBadInputsRuleSet"
     priority = 400
@@ -136,11 +136,11 @@ resource "aws_wafv2_web_acl" "ecommerce_waf" {
     }
   }
 
-  ###########################################################################
-  # Rule 500 — AWS managed common rule set
-  #
-  # SizeRestrictions_Body set to COUNT to allow bulk product upload (XLSX)
-  ###########################################################################
+ ###########################################################################
+ # Rule 500 — AWS managed common rule set
+ #
+ # SizeRestrictions_Body set to COUNT to allow bulk product upload (XLSX)
+ ###########################################################################
   rule {
     name     = "AWSManagedRulesCommonRuleSet"
     priority = 500

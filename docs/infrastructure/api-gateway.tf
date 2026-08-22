@@ -79,7 +79,7 @@ resource "aws_apigatewayv2_route" "auth_routes" {
 }
 
 ###############################################################################
-# Routes — no authorizer
+# Routes — auth handled at application layer
 #
 # /api/v1/users was registered before auth policy was applied to this route group.
 # Swagger spec documents this route as requiring bearerAuth + admin role.
@@ -93,7 +93,7 @@ resource "aws_apigatewayv2_route" "public_routes" {
     "POST /api/v1/auth/refresh",
     "GET /api/v1/products",
     "POST /api/v1/graphql",
-    "GET /api/v1/users",      # No authorizer — see note above
+    "GET /api/v1/users",      # auth handled at application layer — see note above
   ])
 
   api_id             = aws_apigatewayv2_api.ecommerce.id

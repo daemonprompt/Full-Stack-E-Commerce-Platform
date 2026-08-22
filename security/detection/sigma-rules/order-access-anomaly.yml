@@ -1,0 +1,23 @@
+title: Order Data — Access Pattern Anomaly
+id: ts-bola-001
+status: production
+description: >
+  Detects a single authenticated session accessing an unusually high number of
+  distinct order records. Normal usage is 1-5 orders per session.
+  High-volume order access warrants review.
+author: security-engineering
+date: 2026/06/20
+logsource:
+  product: nodejs
+  service: express
+detection:
+  selection:
+    endpoint|startswith: /api/v1/orders/
+    method: GET
+    status: 200
+  timeframe: 10m
+  condition: selection | count() by sessionId > 50
+falsepositives:
+  - Customer service tooling with elevated access
+  - Approved reporting service using the customer API endpoint
+level: medium

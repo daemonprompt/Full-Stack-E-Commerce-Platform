@@ -1,11 +1,13 @@
-# Jira integration configuration
-# See docs/integrations/jira-setup.md for API access setup instructions
+# Jira integration — all portfolio repos report into SECDEMO
+# See docs/integrations/jira-setup.md for API token setup
 
-project_key: TECH
-project_name: "TechStride — Security Findings"
+project_key: SECDEMO
+project_name: "Security Demo Portfolio"
 
 jira_url: https://your-org.atlassian.net
 auth_method: api_token
+
+repo_label: TECH
 
 issue_type_defaults:
   HIGH: Bug
@@ -14,8 +16,9 @@ issue_type_defaults:
   INFO: Task
 
 field_mappings:
-  summary: "[{tool}] {check_id} — {resource}"
+  summary: "[{tool}][TECH] {check_id} — {resource}"
   description: |
+    **Repo:** TECH
     **Finding:** {check_name}
     **Resource:** {resource}
     **File:** {file_path}
@@ -31,8 +34,7 @@ field_mappings:
     - security
     - "{tool}"
     - "{severity}"
-  components:
-    - Security
+    - "TECH"
 
 scan_tool_mapping:
   semgrep:
@@ -60,8 +62,4 @@ scan_tool_mapping:
     auto_create: true
     auto_close_on_pass: true
 
-dedup_key: "{check_id}:{resource}"
-webhook_events:
-  - finding.opened
-  - finding.resolved
-  - finding.severity_changed
+dedup_key: "{check_id}:{resource}:TECH"

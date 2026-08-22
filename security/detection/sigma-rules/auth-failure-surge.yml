@@ -1,0 +1,22 @@
+title: Authentication — Credential Stuffing Pattern
+id: ts-auth-001
+status: production
+description: >
+  Detects a high rate of failed authentication attempts from a single IP address.
+  Indicates potential credential stuffing or brute-force activity against the
+  customer login endpoint.
+author: security-engineering
+date: 2026/06/20
+logsource:
+  product: nodejs
+  service: express
+detection:
+  selection:
+    endpoint: /api/v1/auth/login
+    status: 401
+  timeframe: 5m
+  condition: selection | count() by ip > 20
+falsepositives:
+  - Integration test suite with misconfigured credentials
+  - Shared corporate NAT with multiple failed logins
+level: medium

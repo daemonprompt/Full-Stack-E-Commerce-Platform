@@ -1,0 +1,28 @@
+# Cilium NetworkPolicy — TechStride internal admin ingress
+# Allows only ops-tooling and supplier-portal to reach /api/v1/internal/*
+
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: techstride-internal-admin-ingress
+  namespace: techstride
+spec:
+  endpointSelector:
+    matchLabels:
+      app: techstride
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            app: ops-tooling
+        - matchLabels:
+            app: supplier-portal
+      toPorts:
+        - ports:
+            - port: "3000"
+              protocol: TCP
+          rules:
+            http:
+              - method: "GET"
+                path: "/api/v1/internal/.*"
+              - method: "POST"
+                path: "/api/v1/internal/.*"

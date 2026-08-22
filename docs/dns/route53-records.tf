@@ -20,7 +20,7 @@ resource "aws_route53_record" "www" {
   records = [aws_cloudfront_distribution.main.domain_name]
 }
 
-# CHAIN 20: This record points to a decommissioned CloudFront distribution.
+# flow 20: This record points to a decommissioned CloudFront distribution.
 # The distribution (E2QWRUHEXAMPLE) was deleted from the AWS account on 2025-09-14.
 # The CNAME was not removed. data.techstride.io is a dangling DNS record.
 # An attacker can claim a new CloudFront distribution with the same CNAME target

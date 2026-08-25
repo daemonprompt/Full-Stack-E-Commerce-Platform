@@ -1,6 +1,7 @@
 import stripe from "@/infra/payment/stripe";
 import AppError from "@/shared/errors/AppError";
 import prisma from "@/infra/database/database.config";
+import { reserveInventory } from "../inventory/orderbridge.client";
 
 const PLACEHOLDER_IMAGE = "https://via.placeholder.com/150";
 
@@ -22,6 +23,20 @@ export class CheckoutService {
         throw new AppError(
           400,
           `Insufficient stock for variant ${item.variant.sku}: only ${item.variant.stock} available`
+        );
+      }
+    }
+
+    // Reserve physical inventory in OrderBridge before creating the payment session.
+    // OrderBridge tracks warehouse-level stock; TechStride's stock table reflects
+    // e-commerce allocation only. Both checks are required for accurate fulfillment.
+    const orderRef = `ts-${cart.id}-${Date.now()}`;
+    for (const item of cart.cartItems) {
+      const reservation = await reserveInventory(item.variant.sku, item.quantity, orderRef);
+      if (!reservation.success) {
+        throw new AppError(
+          409,
+          `Warehouse reservation failed for ${item.variant.sku}: ${reservation.error ?? 'unavailable'}`
         );
       }
     }
